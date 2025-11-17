@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Modules\Financial\Sheets\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Modules\Core\Responses\ApiResponse;
+use App\Modules\Financial\Sheets\Requests\CreateSheetRequest;
+use App\Modules\Financial\Sheets\Requests\UpdateSheetRequest;
+use App\Modules\Financial\Sheets\Services\SheetService;
+use Illuminate\Http\Request;
+
+class SheetController extends Controller
+{
+    public function __construct(
+        private SheetService $service
+    ) {}
+
+    /**
+     * Lista planilhas do usuário autenticado.
+     */
+    public function index(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheets = $this->service->listForUser($userId);
+
+        // Sempre retorna lista, nunca 204
+        return ApiResponse::success(
+            $sheets,
+            'Sheets loaded successfully'
+        );
+    }
+
+    /**
+     * Exibe uma planilha específica do usuário.
+     */
+    public function show(int $id, Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheet = $this->service->findForUser($id, $userId);
+
+        if (!$sheet) {
+            return ApiResponse::error('Sheet not found', 404);
+        }
+
+        // Carrega também os items (SheetItem)
+        $sheet->load('items');
+
+        return ApiResponse::success(
+            $sheet,
+            'Sheet loaded successfully'
+        );
+    }
+
+    /**
+     * Cria nova planilha.
+     */
+    public function store(CreateSheetRequest $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheet = $this->service->createForUser(
+            $userId,
+            $request->validated()
+        );
+
+        return ApiResponse::success(
+            $sheet,
+            'Sheet created successfully'
+        );
+    }
+
+    /**
+     * Atualiza planilha existente.
+     */
+    public function update(int $id, UpdateSheetRequest $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheet = $this->service->findForUser($id, $userId);
+
+        if (!$sheet) {
+            return ApiResponse::error('Sheet not found', 404);
+        }
+
+        $updated = $this->service->updateSheet(
+            $sheet,
+            $request->validated()
+        );
+
+        return ApiResponse::success(
+            $updated,
+            'Sheet updated successfully'
+        );
+    }
+
+    /**
+     * Exclui planilha.
+     */
+    public function destroy(int $id, Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheet = $this->service->findForUser($id, $userId);
+
+        if (!$sheet) {
+            return ApiResponse::error('Sheet not found', 404);
+        }
+
+        $this->service->deleteSheet($sheet);
+
+        return ApiResponse::success(
+            [],
+            'Sheet deleted successfully'
+        );
+    }
+
+    public function summary(int $id, Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $sheet = $this->service->findForUser($id, $userId);
+
+        if (!$sheet) {
+            return ApiResponse::error('Sheet not found', 404);
+        }
+
+        // Pré-carregar somente o necessário (muito rápido)
+        $entradas = $sheet->items()
+            ->where('type', 'income')
+            ->sum('value');
+
+        $saidas = $sheet->items()
+            ->where('type', 'expense')
+            ->sum('value');
+
+        return ApiResponse::success([
+            'sheet_id'     => $sheet->id,
+            'entradas'     => (float) $entradas,
+            'saidas'       => (float) $saidas,
+            'initial'      => (float) $sheet->initial_balance,
+            'saldo_final'  => (float) ($sheet->initial_balance + $entradas - $saidas),
+        ], 'Summary loaded successfully');
+    }
+
+}
