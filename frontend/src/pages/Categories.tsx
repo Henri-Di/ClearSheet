@@ -24,18 +24,33 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 // =========================================================
-// CONFIG: TOAST PADRÃO (PASTEL)
+// CONFIG: TOAST PADRÃO (PASTEL) — MESMO PADRÃO DE TRANSACTIONS
 // =========================================================
-const Toast = Swal.mixin({
+const baseToast = Swal.mixin({
   toast: true,
   position: "top-end",
   showConfirmButton: false,
-  timer: 3000,
+  timer: 2200,
   timerProgressBar: true,
-  background: "#ffffff",
-  color: "#2F2F36",
-  iconColor: "#7B61FF",
+  customClass: {
+    popup: "rounded-2xl shadow-md text-sm bg-white/95 border border-[#E6E1F7]",
+    title: "font-semibold text-gray-800",
+    htmlContainer: "text-xs text-gray-600",
+    icon: "scale-90",
+  },
 });
+
+function showSuccessToast(title: string, text?: string) {
+  baseToast.fire({ icon: "success", title, text });
+}
+
+function showErrorToast(title: string, text?: string) {
+  baseToast.fire({ icon: "error", title, text });
+}
+
+function showWarningToast(title: string, text?: string) {
+  baseToast.fire({ icon: "warning", title, text });
+}
 
 // =========================================================
 // TYPES
@@ -141,7 +156,7 @@ export default function Categories() {
         }))
       );
     } catch {
-      Toast.fire({ icon: "error", title: "Falha ao carregar categorias." });
+      showErrorToast("Falha ao carregar categorias.");
     } finally {
       setLoadingCategories(false);
     }
@@ -176,7 +191,7 @@ export default function Categories() {
         }))
       );
     } catch {
-      Toast.fire({ icon: "error", title: "Falha ao carregar planilhas." });
+      showErrorToast("Falha ao carregar planilhas.");
     } finally {
       setLoadingSheets(false);
     }
@@ -188,7 +203,7 @@ export default function Categories() {
 
   async function createCategory() {
     if (!newCategory.name.trim()) {
-      Toast.fire({ icon: "warning", title: "Informe o nome da categoria." });
+      showWarningToast("Informe o nome da categoria.");
       return;
     }
 
@@ -212,12 +227,11 @@ export default function Categories() {
 
       setShowCreateModal(false);
 
-      Toast.fire({ icon: "success", title: "Categoria criada!" });
+      showSuccessToast("Categoria criada!");
     } catch (err: any) {
-      Toast.fire({
-        icon: "error",
-        title: err?.response?.data?.message || "Erro ao criar categoria.",
-      });
+      showErrorToast(
+        err?.response?.data?.message || "Erro ao criar categoria."
+      );
     }
   }
 
@@ -238,7 +252,7 @@ export default function Categories() {
     if (!editingCategory) return;
 
     if (!editForm.name.trim()) {
-      Toast.fire({ icon: "warning", title: "Informe o nome da categoria." });
+      showWarningToast("Informe o nome da categoria.");
       return;
     }
 
@@ -270,18 +284,15 @@ export default function Categories() {
 
       setShowEditModal(false);
 
-      Toast.fire({ icon: "success", title: "Categoria atualizada!" });
+      showSuccessToast("Categoria atualizada!");
     } catch {
-      Toast.fire({
-        icon: "error",
-        title: "Erro ao atualizar categoria.",
-      });
+      showErrorToast("Erro ao atualizar categoria.");
     }
   }
 
   // =========================================================
-  // DELETE CATEGORY
-  // =========================================================
+  // DELETE CATEGORY (CONFIRMAÇÃO PADRÃO TRANSACTIONS)
+// =========================================================
 
   async function deleteCategory(id: number) {
     const confirm = await Swal.fire({
@@ -291,7 +302,14 @@ export default function Categories() {
       showCancelButton: true,
       confirmButtonText: "Excluir",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
+      confirmButtonColor: "#E02424",
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton:
+          "bg-red-500 text-white rounded-xl px-4 py-2 text-sm font-medium",
+        cancelButton:
+          "bg-gray-100 text-gray-700 rounded-xl px-4 py-2 text-sm font-medium",
+      },
     });
 
     if (!confirm.isConfirmed) return;
@@ -305,9 +323,9 @@ export default function Categories() {
         setSheets([]);
       }
 
-      Toast.fire({ icon: "success", title: "Categoria excluída!" });
+      showSuccessToast("Categoria excluída!");
     } catch {
-      Toast.fire({ icon: "error", title: "Erro ao excluir." });
+      showErrorToast("Erro ao excluir.");
     }
   }
 

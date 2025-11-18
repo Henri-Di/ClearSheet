@@ -17,14 +17,14 @@ class CreateSheetItemRequest extends FormRequest
             'type'        => 'required|in:entrada,saida,income,expense',
             'value'       => 'required|numeric|min:0.01',
 
-            // categoria pode ser null
             'category_id' => 'nullable|integer|exists:categories,id',
-
-            // NOVO: banco pode ser null
             'bank_id'     => 'nullable|integer|exists:banks,id',
 
             'description' => 'nullable|string|max:500',
             'date'        => 'nullable|date',
+
+            // CORREÇÃO
+            'paid_at'     => 'nullable|date',
         ];
     }
 }

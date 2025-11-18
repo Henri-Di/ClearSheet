@@ -30,6 +30,9 @@ import {
   ReceiptText,
   Wrench,
   Briefcase,
+  FolderTree,
+  LayoutGrid,
+  ShoppingBag,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -50,6 +53,7 @@ interface Sheet {
 interface Category {
   id: number;
   name: string;
+  icon?: string | null;
 }
 
 interface Bank {
@@ -97,7 +101,7 @@ const EMPTY_FORM: ItemFormState = {
 };
 
 /* ============================================================================
- * Toasts
+ * Toast configuration (pastel style)
  * ==========================================================================*/
 const baseToast = Swal.mixin({
   toast: true,
@@ -193,6 +197,10 @@ function formatCurrency(value: number) {
   });
 }
 
+/**
+ * Fallback: derive icon from category name when backend does not provide icon code.
+ * Kept for backward compatibility and imported data.
+ */
 function getCategoryIconComponent(name: string | null | undefined): LucideIcon {
   const n = normalize(name || "");
   if (!n) return Tag;
@@ -322,6 +330,25 @@ function getCategoryIconComponent(name: string | null | undefined): LucideIcon {
 }
 
 /* ============================================================================
+ * Category icon codes (same semantic as Categories.tsx – option B)
+ * ==========================================================================*/
+const CATEGORY_ICONS = [
+  { value: "folder", label: "Padrão", Icon: FolderTree },
+  { value: "grid", label: "Organização", Icon: LayoutGrid },
+  { value: "shopping", label: "Compras", Icon: ShoppingBag },
+  { value: "home", label: "Casa", Icon: Home },
+  { value: "car", label: "Transporte", Icon: Car },
+  { value: "food", label: "Alimentação", Icon: Utensils },
+  { value: "savings", label: "Poupança", Icon: PiggyBank },
+];
+
+function getCategoryIconByCode(code?: string | null): LucideIcon {
+  if (!code) return Tag;
+  const match = CATEGORY_ICONS.find((i) => i.value === code);
+  return match ? match.Icon : Tag;
+}
+
+/* ============================================================================
  * Main component
  * ==========================================================================*/
 export default function SheetView() {
@@ -358,14 +385,13 @@ export default function SheetView() {
   const [updatingInlineKey, setUpdatingInlineKey] = useState<string | null>(
     null
   );
-  const [updatingInitialBalance, setUpdatingInitialBalance] = useState(false);
   const [deletingSheet, setDeletingSheet] = useState(false);
   const [savingSheet, setSavingSheet] = useState(false);
   const [savingItem, setSavingItem] = useState(false);
   const [paidPopoverKey, setPaidPopoverKey] = useState<string | null>(null);
 
   /* ------------------------------------------------------------------------
-   * API → Unified
+   * API → unified item mapping
    * ----------------------------------------------------------------------*/
   function apiItemToUnified(i: any): UnifiedItem {
     return {
@@ -377,6 +403,7 @@ export default function SheetView() {
         ? {
             id: i.category.id,
             name: i.category.name,
+            icon: i.category.icon ?? null,
           }
         : null,
       category_id:
@@ -396,7 +423,7 @@ export default function SheetView() {
   }
 
   /* ------------------------------------------------------------------------
-   * Load data
+   * Initial data load
    * ----------------------------------------------------------------------*/
   async function loadData() {
     if (!id) return;
@@ -447,6 +474,7 @@ export default function SheetView() {
           (c: any) => ({
             id: c.id,
             name: c.name,
+            icon: c.icon ?? null,
           })
         )
       );
@@ -463,7 +491,7 @@ export default function SheetView() {
   }, [id]);
 
   /* ------------------------------------------------------------------------
-   * Unified items + filters + sorting
+   * Unified items + search + sorting
    * ----------------------------------------------------------------------*/
   const allItems = useMemo(
     () => [...sheetItems, ...transactionItems],
@@ -543,46 +571,7 @@ export default function SheetView() {
   const saldoFinal = sheet ? sheet.initial_balance + entradas - saidas : 0;
 
   /* ------------------------------------------------------------------------
-   * Sheet update
-   * ----------------------------------------------------------------------*/
-  async function updateSheet(field: keyof Sheet, value: any) {
-    if (!sheet) return;
-
-    try {
-      if (field === "initial_balance") {
-        setUpdatingInitialBalance(true);
-      }
-
-      const payload: any = {};
-      payload[field] = field === "initial_balance" ? Number(value) : value;
-
-      const res = await api.put(`/sheets/${sheet.id}`, payload);
-      const updated = res.data?.data ?? payload;
-
-      setSheet((prev) =>
-        prev
-          ? {
-              ...prev,
-              ...updated,
-              initial_balance: Number(
-                updated.initial_balance ?? prev.initial_balance
-              ),
-            }
-          : prev
-      );
-
-      showSuccessToast("Planilha atualizada");
-    } catch {
-      showErrorToast("Erro ao atualizar planilha");
-    } finally {
-      if (field === "initial_balance") {
-        setUpdatingInitialBalance(false);
-      }
-    }
-  }
-
-  /* ------------------------------------------------------------------------
-   * Local-only inline item update
+   * Local-only inline item update (optimistic)
    * ----------------------------------------------------------------------*/
   function updateLocalItemField(
     item: UnifiedItem,
@@ -625,103 +614,101 @@ export default function SheetView() {
   }
 
   /* ------------------------------------------------------------------------
- * Full inline item update (API)
- * ----------------------------------------------------------------------*/
-async function updateInline(
-  item: UnifiedItem,
-  field:
-    | "value"
-    | "category_id"
-    | "date"
-    | "description"
-    | "type"
-    | "bank_id"
-    | "paid_at",
-  value: any
-) {
-  const key = `${item.origin}-${item.id}`;
+   * Full inline item update (API)
+   * ----------------------------------------------------------------------*/
+  async function updateInline(
+    item: UnifiedItem,
+    field:
+      | "value"
+      | "category_id"
+      | "date"
+      | "description"
+      | "type"
+      | "bank_id"
+      | "paid_at",
+    value: any
+  ) {
+    const key = `${item.origin}-${item.id}`;
 
-  try {
-    setUpdatingInlineKey(key);
+    try {
+      setUpdatingInlineKey(key);
 
-    const endpoint =
-      item.origin === "sheet"
-        ? `/sheets/${sheet?.id}/items/${item.id}`
-        : `/transactions/${item.id}`;
+      const endpoint =
+        item.origin === "sheet"
+          ? `/sheets/${sheet?.id}/items/${item.id}`
+          : `/transactions/${item.id}`;
 
-    const payload: any = {};
+      const payload: any = {};
 
-    if (field === "value") {
-      payload.value = value ? Number(value) : null;
-    } else if (field === "category_id") {
-      payload.category_id = value ? Number(value) : null;
-    } else if (field === "bank_id") {
-      payload.bank_id = value ? Number(value) : null;
-    } else if (field === "type") {
-      payload.type = value;
-    } else if (field === "date") {
-      payload.date = value || null;
-    } else if (field === "description") {
-      payload.description = value || null;
-    } else if (field === "paid_at") {
-      payload.paid_at = value || null;
-    }
-
-    const res = await api.put(endpoint, payload);
-    const updatedRaw = res.data?.data ?? null;
-
-    if (updatedRaw) {
-      if (payload.paid_at && !updatedRaw.paid_at) {
-        updatedRaw.paid_at = payload.paid_at;
+      if (field === "value") {
+        payload.value = value ? Number(value) : null;
+      } else if (field === "category_id") {
+        payload.category_id = value ? Number(value) : null;
+      } else if (field === "bank_id") {
+        payload.bank_id = value ? Number(value) : null;
+      } else if (field === "type") {
+        payload.type = value;
+      } else if (field === "date") {
+        payload.date = value || null;
+      } else if (field === "description") {
+        payload.description = value || null;
+      } else if (field === "paid_at") {
+        payload.paid_at = value || null;
       }
 
-      // Também normalizamos caso backend devolva formato incorreto
-      updatedRaw.paid_at = normalizeIsoDate(updatedRaw.paid_at);
-      updatedRaw.date = normalizeIsoDate(updatedRaw.date);
+      const res = await api.put(endpoint, payload);
+      const updatedRaw = res.data?.data ?? null;
+
+      if (updatedRaw) {
+        if (payload.paid_at && !updatedRaw.paid_at) {
+          updatedRaw.paid_at = payload.paid_at;
+        }
+
+        updatedRaw.paid_at = normalizeIsoDate(updatedRaw.paid_at);
+        updatedRaw.date = normalizeIsoDate(updatedRaw.date);
+      }
+
+      const updatedUnified = updatedRaw ? apiItemToUnified(updatedRaw) : null;
+
+      const updateList = (prev: UnifiedItem[]) =>
+        prev.map((i) => {
+          if (i.id !== item.id || i.origin !== item.origin) return i;
+          if (updatedUnified) return updatedUnified;
+
+          const clone: UnifiedItem = { ...i };
+
+          if (field === "value") clone.value = Number(value);
+          else if (field === "category_id")
+            clone.category_id = value ? Number(value) : null;
+          else if (field === "bank_id")
+            clone.bank_id = value ? Number(value) : null;
+          else if (field === "type") clone.type = value as ItemType;
+          else if (field === "date")
+            clone.date = normalizeIsoDate(value || null);
+          else if (field === "description")
+            clone.description = value || null;
+          else if (field === "paid_at")
+            clone.paid_at = normalizeIsoDate(value || null);
+
+          return clone;
+        });
+
+      if (item.origin === "sheet") setSheetItems(updateList);
+      else setTransactionItems(updateList);
+
+      setLastUpdatedKey(key);
+      showSuccessToast("Item atualizado", "As alterações foram salvas.");
+
+      setTimeout(() => {
+        setLastUpdatedKey((prev) => (prev === key ? null : prev));
+      }, 1200);
+    } catch {
+      showErrorToast("Erro ao atualizar item", "Tente novamente.");
+    } finally {
+      setUpdatingInlineKey((prev) => (prev === key ? null : prev));
+      setPaidPopoverKey((prev) => (prev === key ? null : prev));
     }
-
-    const updatedUnified = updatedRaw ? apiItemToUnified(updatedRaw) : null;
-
-    const updateList = (prev: UnifiedItem[]) =>
-      prev.map((i) => {
-        if (i.id !== item.id || i.origin !== item.origin) return i;
-        if (updatedUnified) return updatedUnified;
-
-        // fallback total
-        const clone: UnifiedItem = { ...i };
-
-        if (field === "value") clone.value = Number(value);
-        else if (field === "category_id")
-          clone.category_id = value ? Number(value) : null;
-        else if (field === "bank_id")
-          clone.bank_id = value ? Number(value) : null;
-        else if (field === "type") clone.type = value as ItemType;
-        else if (field === "date")
-          clone.date = normalizeIsoDate(value || null);
-        else if (field === "description")
-          clone.description = value || null;
-        else if (field === "paid_at")
-          clone.paid_at = normalizeIsoDate(value || null);
-
-        return clone;
-      });
-
-    if (item.origin === "sheet") setSheetItems(updateList);
-    else setTransactionItems(updateList);
-
-    setLastUpdatedKey(key);
-    showSuccessToast("Item atualizado", "As alterações foram salvas.");
-
-    setTimeout(() => {
-      setLastUpdatedKey((prev) => (prev === key ? null : prev));
-    }, 1200);
-  } catch {
-    showErrorToast("Erro ao atualizar item", "Tente novamente.");
-  } finally {
-    setUpdatingInlineKey((prev) => (prev === key ? null : prev));
-    setPaidPopoverKey((prev) => (prev === key ? null : prev));
   }
-}
 
   /* ------------------------------------------------------------------------
    * Delete item
@@ -901,9 +888,7 @@ async function updateInline(
 
         const apply = (prev: UnifiedItem[]) =>
           prev.map((it) =>
-            it.id === unified.id && it.origin === unified.origin
-              ? unified
-              : it
+            it.id === unified.id && it.origin === unified.origin ? unified : it
           );
 
         if (editingItem.origin === "sheet") setSheetItems(apply);
@@ -982,7 +967,7 @@ async function updateInline(
    * ----------------------------------------------------------------------*/
   return (
     <div className="animate-fadeIn space-y-10 pb-20">
-      {/* Header / ações */}
+      {/* Header and actions */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-white rounded-3xl px-6 py-6 shadow-sm border border-[#E6E1F7]">
         <div className="flex items-center gap-4">
           <Link
@@ -997,28 +982,30 @@ async function updateInline(
               {sheet.name}
             </h1>
             {sheet.description && (
-              <p className="text-xs text-gray-500 mt-1">{sheet.description}</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {sheet.description}
+              </p>
             )}
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-3">
-          {/* Busca */}
+          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Buscar por descrição, categoria, banco, pago..."
-              className="border rounded-xl pl-10 pr-3 py-2 w-full md:w-64 focus:outline-[#7B61FF]"
+              className="border rounded-xl pl-10 pr-3 py-2 w-full md:w-64 focus:outline-[#7B61FF] text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          {/* Ordenar */}
+          {/* Sort menu */}
           <div className="relative">
             <button
-              className="cursor-pointer bg-white border rounded-xl px-3 py-2 flex items-center gap-2 hover:bg-gray-50"
+              className="cursor-pointer bg-white border rounded-xl px-3 py-2 flex items-center gap-2 hover:bg-gray-50 text-sm"
               onClick={() => setSortMenuOpen((p) => !p)}
             >
               {direction === "asc" ? (
@@ -1031,7 +1018,7 @@ async function updateInline(
             </button>
 
             {sortMenuOpen && (
-              <div className="absolute right-0 mt-2 bg-white border rounded-xl shadow-lg p-2 w-52 z-10 text-sm">
+              <div className="absolute right-0 mt-2 bg-white border rounded-xl shadow-lg p-2 w-60 z-10 text-sm">
                 {[
                   { key: "date", label: "Data" },
                   { key: "value", label: "Valor" },
@@ -1062,19 +1049,19 @@ async function updateInline(
             )}
           </div>
 
-          {/* Editar planilha */}
+          {/* Edit sheet */}
           <button
             onClick={openEditSheetModal}
-            className="bg-[#E6F0FF] text-[#2F4A8A] px-4 py-2 rounded-xl border border-[#C3D7FF] flex items-center justify-center gap-2 hover:bg-[#d9e8ff]"
+            className="bg-[#E6F0FF] text-[#2F4A8A] px-4 py-2 rounded-xl border border-[#C3D7FF] flex items-center justify-center gap-2 hover:bg-[#d9e8ff] text-sm"
           >
             <Pencil size={16} /> Editar planilha
           </button>
 
-          {/* Excluir planilha */}
+          {/* Delete sheet */}
           <button
             onClick={deleteSheet}
             disabled={deletingSheet}
-            className={`bg-red-50 text-red-600 px-4 py-2 rounded-xl border border-red-200 hover:bg-red-100 flex items-center justify-center gap-2 ${
+            className={`bg-red-50 text-red-600 px-4 py-2 rounded-xl border border-red-200 hover:bg-red-100 flex items-center justify-center gap-2 text-sm ${
               deletingSheet ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
@@ -1089,49 +1076,46 @@ async function updateInline(
             )}
           </button>
 
-          {/* Novo item */}
+          {/* New item */}
           <button
             onClick={openCreateItemModal}
-            className="bg-[#7B61FF] text-white px-5 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-[#6A54E6]"
+            className="bg-[#7B61FF] text-white px-5 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-[#6A54E6] text-sm"
           >
             <Plus size={18} /> Novo item
           </button>
         </div>
       </div>
 
-      {/* Cards resumo */}
+      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Saldo inicial */}
-        <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#F4D6E3] hover:shadow-md transition cursor-pointer">
+        {/* Initial balance – aligned visually with other cards */}
+        <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#F4D6E3] hover:shadow-md transition">
           <div className="flex justify-between items-center">
-            <h3 className="text-gray-700">Saldo Inicial</h3>
+            <h3 className="text-sm font-medium text-gray-700">
+              Saldo inicial
+            </h3>
             <Coins className="text-[#E76BA3]" />
           </div>
-          <div className="mt-2 flex items-end gap-2">
-            <span className="text-2xl font-bold text-[#E76BA3]">R$</span>
-            <div className="flex-1 flex items-center gap-2">
-              <input
-                type="number"
-                className="text-2xl font-bold text-[#E76BA3] bg-transparent border-b w-full focus:outline-none focus:border-[#7B61FF]"
-                defaultValue={sheet.initial_balance}
-                onBlur={(e) =>
-                  updateSheet("initial_balance", Number(e.target.value))
-                }
-              />
-              {updatingInitialBalance && (
-                <Loader2 size={20} className="animate-spin text-[#7B61FF]" />
-              )}
-            </div>
-          </div>
+          <p className="text-2xl font-bold text-[#E76BA3] mt-2">
+            {formatCurrency(sheet.initial_balance)}
+          </p>
           <p className="text-xs text-gray-500 mt-2">
             Este valor é o ponto de partida para o cálculo de saldo da planilha.
           </p>
+          <button
+            type="button"
+            onClick={openEditSheetModal}
+            className="mt-3 inline-flex items-center gap-1 text-xs text-[#7B61FF] hover:underline"
+          >
+            <Pencil size={12} />
+            Ajustar saldo inicial
+          </button>
         </div>
 
-        {/* Entradas */}
+        {/* Income */}
         <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#E6E1F7] hover:shadow-md transition">
           <div className="flex justify-between items-center">
-            <h3 className="text-gray-700">Entradas</h3>
+            <h3 className="text-sm font-medium text-gray-700">Entradas</h3>
             <Coins className="text-green-600" />
           </div>
           <p className="text-2xl font-bold text-green-600 mt-2">
@@ -1142,10 +1126,10 @@ async function updateInline(
           </p>
         </div>
 
-        {/* Saídas */}
+        {/* Expenses */}
         <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#E6E1F7] hover:shadow-md transition">
           <div className="flex justify-between items-center">
-            <h3 className="text-gray-700">Saídas</h3>
+            <h3 className="text-sm font-medium text-gray-700">Saídas</h3>
             <Coins className="text-red-600" />
           </div>
           <p className="text-2xl font-bold text-red-600 mt-2">
@@ -1156,10 +1140,10 @@ async function updateInline(
           </p>
         </div>
 
-        {/* Saldo final */}
+        {/* Final balance */}
         <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#E6E1F7] hover:shadow-md transition">
           <div className="flex justify-between items-center">
-            <h3 className="text-gray-700">Saldo Final</h3>
+            <h3 className="text-sm font-medium text-gray-700">Saldo final</h3>
             <Coins className="text-[#7B61FF]" />
           </div>
           <p className="text-2xl font-bold text-[#7B61FF] mt-2">
@@ -1171,9 +1155,11 @@ async function updateInline(
         </div>
       </div>
 
-      {/* Lista de transações */}
+      {/* Transactions list */}
       <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#E6E1F7]">
-        <h2 className="text-xl font-semibold mb-4">Transações</h2>
+        <h2 className="text-xl font-semibold mb-4 text-[#2F2F36]">
+          Transações
+        </h2>
 
         <div className="space-y-4">
           {filtered.map((item) => {
@@ -1184,12 +1170,14 @@ async function updateInline(
             const showUpdated = lastUpdatedKey === key;
             const isUpdating = updatingInlineKey === key;
 
-            const CategoryIcon = getCategoryIconComponent(
+            const IconFromCode = item.category?.icon
+              ? getCategoryIconByCode(item.category.icon)
+              : null;
+            const FallbackIcon = getCategoryIconComponent(
               item.category?.name || ""
             );
+            const CategoryIcon = IconFromCode || FallbackIcon;
 
-            // Entrada OU despesa paga → card verde.
-            // Despesa em aberto → card rosado.
             const wrapperColorClass =
               isIncome || isPaid
                 ? "bg-[#E8F7EE] border-[#C8EED3]"
@@ -1209,7 +1197,7 @@ async function updateInline(
                 key={key}
                 className={`relative grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch p-4 rounded-2xl border transition-shadow ${wrapperColorClass} shadow-[0_1px_4px_rgba(15,23,42,0.04)]`}
               >
-                {/* Badge de status (topo esquerdo) */}
+                {/* Status badges */}
                 {!isIncome && isPaid && (
                   <div className="absolute -top-3 left-4 bg-emerald-600 text-white text-[11px] px-3 py-1 rounded-full flex items-center gap-1 shadow">
                     <CheckCircle2 size={12} />
@@ -1224,13 +1212,17 @@ async function updateInline(
                   </div>
                 )}
 
-                {/* Valor / Tipo */}
-                <div className="flex flex-col gap-1 lg:col-span-3">
-                  <span className="text-[11px] text-gray-500">Valor / Tipo</span>
+                {/* Value / type */}
+                <div className="flex flex-col gap-2 lg:col-span-3">
+                  <span className="text-xs font-semibold text-gray-600">
+                    Valor / Tipo
+                  </span>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm flex-1 min-w-[150px]">
                       <DollarSign
-                        className={isIncome ? "text-green-600" : "text-red-600"}
+                        className={
+                          isIncome ? "text-green-600" : "text-red-600"
+                        }
                         size={18}
                       />
                       <input
@@ -1254,9 +1246,11 @@ async function updateInline(
                       />
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full sm:w-40">
+                    <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full sm:w-44">
                       <Coins
-                        className={isIncome ? "text-green-600" : "text-red-600"}
+                        className={
+                          isIncome ? "text-green-600" : "text-red-600"
+                        }
                         size={16}
                       />
                       <select
@@ -1275,12 +1269,14 @@ async function updateInline(
                   </div>
                 </div>
 
-                {/* Categoria */}
-                <div className="flex flex-col gap-1 lg:col-span-2">
-                  <span className="text-[11px] text-gray-500">Categoria</span>
+                {/* Category */}
+                <div className="flex flex-col gap-2 lg:col-span-2">
+                  <span className="text-xs font-semibold text-gray-600">
+                    Categoria
+                  </span>
                   <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full">
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 text-amber-700">
-                      <CategoryIcon size={14} />
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-50 text-amber-700">
+                      <CategoryIcon size={15} />
                     </div>
                     <select
                       className="bg-transparent text-xs focus:outline-none w-full"
@@ -1302,12 +1298,14 @@ async function updateInline(
                   </div>
                 </div>
 
-                {/* Banco */}
-                <div className="flex flex-col gap-1 lg:col-span-2">
-                  <span className="text-[11px] text-gray-500">Banco</span>
+                {/* Bank */}
+                <div className="flex flex-col gap-2 lg:col-span-2">
+                  <span className="text-xs font-semibold text-gray-600">
+                    Banco
+                  </span>
                   <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full">
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-50 text-indigo-600">
-                      <Landmark size={14} />
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-50 text-indigo-600">
+                      <Landmark size={15} />
                     </div>
                     <select
                       className="bg-transparent text-xs focus:outline-none w-full"
@@ -1329,9 +1327,9 @@ async function updateInline(
                   </div>
                 </div>
 
-                {/* Vencimento */}
-                <div className="flex flex-col gap-1 lg:col-span-2">
-                  <span className="text-[11px] text-gray-500">
+                {/* Due date */}
+                <div className="flex flex-col gap-2 lg:col-span-2">
+                  <span className="text-xs font-semibold text-gray-600">
                     Data de vencimento
                   </span>
                   <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full">
@@ -1370,9 +1368,9 @@ async function updateInline(
                   )}
                 </div>
 
-                {/* Descrição + origem + ações / pagamento */}
-                <div className="flex flex-col gap-2 lg:col-span-3">
-                  {/* Linha de origem + estado de salvamento */}
+                {/* Description + origin + actions */}
+                <div className="flex flex-col gap-3 lg:col-span-3">
+                  {/* Origin + save state */}
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       {item.origin === "sheet" ? (
@@ -1402,9 +1400,11 @@ async function updateInline(
                     </div>
                   </div>
 
-                  {/* Descrição */}
+                  {/* Description */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] text-gray-500">Descrição</span>
+                    <span className="text-xs font-semibold text-gray-600">
+                      Descrição
+                    </span>
                     <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-2 shadow-sm w-full">
                       <input
                         type="text"
@@ -1425,9 +1425,9 @@ async function updateInline(
                     </div>
                   </div>
 
-                  {/* Ações + pagamento */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    {/* Pagamento inline (somente despesas) */}
+                  {/* Payment + edit/delete actions */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    {/* Inline payment (only expenses) */}
                     {!isIncome && (
                       <div className="relative">
                         {!isPaid ? (
@@ -1453,9 +1453,7 @@ async function updateInline(
                                   <span className="font-semibold text-emerald-700">
                                     paga hoje
                                   </span>{" "}
-                                  (
-                                  {formatDateToText(getTodayIso())}
-                                  ).
+                                  ({formatDateToText(getTodayIso())}).
                                 </p>
                                 <div className="flex justify-end gap-2 mt-3">
                                   <button
@@ -1471,7 +1469,6 @@ async function updateInline(
                                     className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] hover:bg-emerald-700 flex items-center gap-1 disabled:opacity-60"
                                     onClick={() => {
                                       const today = getTodayIso();
-                                      // Atualização otimista local: card já fica verde e badge muda
                                       updateLocalItemField(
                                         item,
                                         "paid_at",
@@ -1533,7 +1530,6 @@ async function updateInline(
                                     disabled={isUpdating}
                                     className="px-3 py-1 rounded-full bg-red-500 text-white text-[11px] hover:bg-red-600 disabled:opacity-60"
                                     onClick={() => {
-                                      // Atualização otimista local: remove pagamento e card pode voltar a vermelho
                                       updateLocalItemField(
                                         item,
                                         "paid_at",
@@ -1560,8 +1556,8 @@ async function updateInline(
                       </div>
                     )}
 
-                    {/* Ações: editar / excluir */}
-                    <div className="flex items-center gap-3 ml-auto">
+                    {/* Edit / delete actions */}
+                    <div className="flex items-center gap-4 ml-auto">
                       <button
                         className="text-[#7B61FF] text-xs flex items-center gap-1 hover:underline"
                         onClick={() => openEditItemModal(item)}
@@ -1592,10 +1588,10 @@ async function updateInline(
         </div>
       </div>
 
-      {/* Modal: editar planilha */}
+      {/* Edit sheet modal */}
       {showSheetModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl w-[95%] max-w-xl p-6 shadow-lg border border-[#E6E1F7] animate-fadeIn">
+          <div className="bg-white rounded-3xl w-[95%] max-w-xl p-6 shadow-lg border border-[#E6E1F7] animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Editar planilha</h2>
               <button
@@ -1613,7 +1609,7 @@ async function updateInline(
                 </label>
                 <input
                   type="text"
-                  className="border rounded-xl px-3 py-2 w-full outline-none"
+                  className="border rounded-xl px-3 py-2 w-full outline-none text-sm"
                   value={sheetForm.name}
                   onChange={(e) =>
                     setSheetForm((p) => ({ ...p, name: e.target.value }))
@@ -1624,7 +1620,7 @@ async function updateInline(
               <div>
                 <label className="text-sm text-gray-600">Descrição</label>
                 <textarea
-                  className="border rounded-xl px-3 py-2 w-full outline-none"
+                  className="border rounded-xl px-3 py-2 w-full outline-none text-sm"
                   value={sheetForm.description}
                   onChange={(e) =>
                     setSheetForm((p) => ({
@@ -1635,12 +1631,12 @@ async function updateInline(
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-600">Mês</label>
                   <input
                     type="number"
-                    className="border rounded-xl px-3 py-2 w-full outline-none"
+                    className="border rounded-xl px-3 py-2 w-full outline-none text-sm"
                     value={sheetForm.month}
                     onChange={(e) =>
                       setSheetForm((p) => ({
@@ -1655,7 +1651,7 @@ async function updateInline(
                   <label className="text-sm text-gray-600">Ano</label>
                   <input
                     type="number"
-                    className="border rounded-xl px-3 py-2 w-full outline-none"
+                    className="border rounded-xl px-3 py-2 w-full outline-none text-sm"
                     value={sheetForm.year}
                     onChange={(e) =>
                       setSheetForm((p) => ({
@@ -1673,7 +1669,7 @@ async function updateInline(
                   <Coins className="text-[#7B61FF]" />
                   <input
                     type="number"
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={sheetForm.initial_balance}
                     onChange={(e) =>
                       setSheetForm((p) => ({
@@ -1688,7 +1684,7 @@ async function updateInline(
               <button
                 onClick={saveSheet}
                 disabled={savingSheet}
-                className="bg-[#7B61FF] text-white rounded-xl px-5 py-3 w-full mt-4 font-medium hover:bg-[#6A54E6] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="bg-[#7B61FF] text-white rounded-xl px-5 py-3 w-full mt-4 font-medium hover:bg-[#6A54E6] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
               >
                 {savingSheet ? (
                   <>
@@ -1704,10 +1700,10 @@ async function updateInline(
         </div>
       )}
 
-      {/* Modal: novo / editar item */}
+      {/* New / edit item modal */}
       {showItemModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm z-50">
-          <div className="bg-white rounded-3xl w-[95%] max-w-lg p-6 shadow-xl border border-[#E6E1F7] animate-fadeIn">
+          <div className="bg-white rounded-3xl w-[95%] max-w-lg p-6 shadow-xl border border-[#E6E1F7] animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">
                 {modalMode === "create" ? "Novo item" : "Editar item"}
@@ -1726,6 +1722,7 @@ async function updateInline(
             </div>
 
             <div className="grid grid-cols-1 gap-4">
+              {/* Type */}
               <div>
                 <label className="text-sm text-gray-600">Tipo</label>
                 <div className="flex items-center gap-2 border rounded-xl p-2">
@@ -1737,7 +1734,7 @@ async function updateInline(
                     }
                   />
                   <select
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={itemForm.type}
                     onChange={(e) =>
                       setItemForm((prev) => ({
@@ -1754,6 +1751,7 @@ async function updateInline(
                 </div>
               </div>
 
+              {/* Value */}
               <div>
                 <label className="text-sm text-gray-600">Valor</label>
                 <div className="flex items-center gap-2 border rounded-xl p-2">
@@ -1761,7 +1759,7 @@ async function updateInline(
                   <input
                     type="number"
                     placeholder="0,00"
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={itemForm.value}
                     onChange={(e) =>
                       setItemForm((prev) => ({
@@ -1777,6 +1775,7 @@ async function updateInline(
                 </p>
               </div>
 
+              {/* Category */}
               <div>
                 <label className="text-sm text-gray-600">Categoria</label>
                 <div className="flex items-center gap-2 border rounded-xl p-2">
@@ -1784,13 +1783,18 @@ async function updateInline(
                     const selectedCategory = categories.find(
                       (c) => String(c.id) === itemForm.category_id
                     );
-                    const ModalCategoryIcon = getCategoryIconComponent(
-                      selectedCategory?.name || ""
+                    const IconFromCode = selectedCategory?.icon
+                      ? getCategoryIconByCode(selectedCategory.icon)
+                      : null;
+                    const ModalCategoryIcon =
+                      IconFromCode ||
+                      getCategoryIconComponent(selectedCategory?.name || "");
+                    return (
+                      <ModalCategoryIcon className="text-gray-400" size={18} />
                     );
-                    return <ModalCategoryIcon className="text-gray-400" />;
                   })()}
                   <select
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={itemForm.category_id}
                     onChange={(e) =>
                       setItemForm((prev) => ({
@@ -1809,12 +1813,13 @@ async function updateInline(
                 </div>
               </div>
 
+              {/* Bank */}
               <div>
                 <label className="text-sm text-gray-600">Banco</label>
                 <div className="flex items-center gap-2 border rounded-xl p-2">
                   <Landmark className="text-gray-400" />
                   <select
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={itemForm.bank_id}
                     onChange={(e) =>
                       setItemForm((prev) => ({
@@ -1833,13 +1838,14 @@ async function updateInline(
                 </div>
               </div>
 
+              {/* Date */}
               <div>
                 <label className="text-sm text-gray-600">Data</label>
                 <div className="flex items-center gap-2 border rounded-xl p-2">
                   <Calendar className="text-gray-400" />
                   <input
                     type="date"
-                    className="w-full bg-transparent outline-none"
+                    className="w-full bg-transparent outline-none text-sm"
                     value={itemForm.date}
                     onChange={(e) =>
                       setItemForm((prev) => ({
@@ -1851,6 +1857,7 @@ async function updateInline(
                 </div>
               </div>
 
+              {/* Paid at (only for expenses) */}
               {itemForm.type === "expense" && (
                 <div>
                   <label className="text-sm text-gray-600">
@@ -1860,7 +1867,7 @@ async function updateInline(
                     <CheckCircle2 className="text-gray-400" />
                     <input
                       type="date"
-                      className="w-full bg-transparent outline-none"
+                      className="w-full bg-transparent outline-none text-sm"
                       value={itemForm.paid_at}
                       onChange={(e) =>
                         setItemForm((prev) => ({
@@ -1877,11 +1884,12 @@ async function updateInline(
                 </div>
               )}
 
+              {/* Description */}
               <div>
                 <label className="text-sm text-gray-600">Descrição</label>
                 <textarea
                   placeholder="Detalhes..."
-                  className="border rounded-xl p-3 w-full outline-none"
+                  className="border rounded-xl p-3 w-full outline-none text-sm"
                   value={itemForm.description}
                   onChange={(e) =>
                     setItemForm((prev) => ({
@@ -1895,7 +1903,7 @@ async function updateInline(
               <button
                 onClick={saveItemFromModal}
                 disabled={savingItem}
-                className="bg-[#7B61FF] text-white rounded-xl px-5 py-3 font-medium hover:bg-[#6A54E6] transition mt-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="bg-[#7B61FF] text-white rounded-xl px-5 py-3 font-medium hover:bg-[#6A54E6] transition mt-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
               >
                 {savingItem ? (
                   <>
