@@ -22,7 +22,7 @@ import Swal from "sweetalert2";
 import { CreateSheetModal } from "../components/modals/CreateSheetModal";
 
 /* ============================================================================
- * GLOBAL TOAST SYSTEM (PASTEL MINIMAL)
+ * GLOBAL TOAST SYSTEM (MESMO PADRÃO DE TRANSACTIONS)
  * ==========================================================================*/
 
 const baseToast = Swal.mixin({
@@ -144,7 +144,7 @@ export default function Sheets() {
 
       setSheets(normalized);
     } catch {
-      showErrorToast("Erro", "Falha ao carregar planilhas.");
+      showErrorToast("Erro ao carregar planilhas", "Falha ao carregar planilhas.");
       setSheets([]);
     } finally {
       setLoading(false);
@@ -168,12 +168,14 @@ export default function Sheets() {
 
       setSummaries(map);
     } catch {
+      // Falha de resumo não deve quebrar a tela
+      // Apenas log silencioso / console se quiser
       console.warn("Falha ao carregar summaries");
     }
   }
 
   // ========================================================
-  // DELETE SHEET
+  // DELETE SHEET (MESMA CONFIRMAÇÃO VISUAL DE TRANSACTIONS)
   // ========================================================
 
   async function deleteSheet(id: number) {
@@ -184,6 +186,14 @@ export default function Sheets() {
       showCancelButton: true,
       confirmButtonText: "Excluir",
       cancelButtonText: "Cancelar",
+      confirmButtonColor: "#E02424",
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton:
+          "bg-red-500 text-white rounded-xl px-4 py-2 text-sm font-medium",
+        cancelButton:
+          "bg-gray-100 text-gray-700 rounded-xl px-4 py-2 text-sm font-medium",
+      },
     });
 
     if (!confirmation.isConfirmed) return;
@@ -200,7 +210,7 @@ export default function Sheets() {
 
       showSuccessToast("Planilha excluída");
     } catch {
-      showErrorToast("Erro", "Falha ao excluir a planilha.");
+      showErrorToast("Erro ao excluir planilha", "Falha ao excluir a planilha.");
     }
   }
 
@@ -286,7 +296,7 @@ export default function Sheets() {
       const msg =
         err?.response?.data?.message ||
         "Falha ao atualizar a planilha.";
-      showErrorToast("Erro ao atualizar", msg);
+      showErrorToast("Erro ao atualizar planilha", msg);
     }
   }
 

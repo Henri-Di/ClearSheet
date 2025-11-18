@@ -356,57 +356,54 @@ export default function Transactions() {
   }
 
   /* ------------------------------------------------------------------------
- * BLOCKDOC: Inline payment for sheet items (optimistic update)
- * ----------------------------------------------------------------------*/
-async function updateSheetItemPaidStatus(
-  item: SheetItem,
-  paidAt: string | null
-) {
-  try {
-    setUpdatingSheetItemId(item.id);
+   * BLOCKDOC: Inline payment for sheet items (optimistic update)
+   * ----------------------------------------------------------------------*/
+  async function updateSheetItemPaidStatus(
+    item: SheetItem,
+    paidAt: string | null
+  ) {
+    try {
+      setUpdatingSheetItemId(item.id);
 
-    // 1) Atualização otimista imediata (UI muda antes do backend)
-    const safePaidAt = normalizeIsoDate(paidAt);
-    setSheetItems((prev) =>
-      prev.map((s) =>
-        s.id === item.id ? { ...s, paid_at: safePaidAt } : s
-      )
-    );
+      // Atualização otimista imediata (UI muda antes do backend)
+      const safePaidAt = normalizeIsoDate(paidAt);
+      setSheetItems((prev) =>
+        prev.map((s) => (s.id === item.id ? { ...s, paid_at: safePaidAt } : s))
+      );
 
-    // 2) Request oficial
-    const payload: any = { paid_at: safePaidAt };
-    const res = await api.put(`/sheet-items/${item.id}`, payload);
+      // Request oficial
+      const payload: any = { paid_at: safePaidAt };
+      const res = await api.put(`/sheet-items/${item.id}`, payload);
 
-    let updatedRaw = res.data?.data ?? res.data ?? null;
+      let updatedRaw = res.data?.data ?? res.data ?? null;
 
-    // 3) Correção crítica:
-    // Se o backend não devolver paid_at, aplicamos exatamente o enviado.
-    if (updatedRaw) {
-      if (payload.paid_at && !updatedRaw.paid_at) {
-        updatedRaw.paid_at = payload.paid_at;
+      // Se o backend não devolver paid_at, aplicamos exatamente o enviado.
+      if (updatedRaw) {
+        if (payload.paid_at && !updatedRaw.paid_at) {
+          updatedRaw.paid_at = payload.paid_at;
+        }
+        // Normalização final
+        updatedRaw.paid_at = normalizeIsoDate(updatedRaw.paid_at);
+        updatedRaw.date = normalizeIsoDate(updatedRaw.date);
       }
-      // Normalização final
-      updatedRaw.paid_at = normalizeIsoDate(updatedRaw.paid_at);
-      updatedRaw.date = normalizeIsoDate(updatedRaw.date);
+
+      const normalized = updatedRaw
+        ? normalizeSheetItemData(updatedRaw)
+        : { ...item, paid_at: safePaidAt };
+
+      // Atualiza a store final
+      setSheetItems((prev) =>
+        prev.map((s) => (s.id === normalized.id ? normalized : s))
+      );
+
+      showSuccessToast("Item atualizado", "Status de pagamento atualizado.");
+    } catch {
+      showErrorToast("Erro ao atualizar item de planilha");
+    } finally {
+      setUpdatingSheetItemId((prev) => (prev === item.id ? null : prev));
+      setSheetPaidPopoverId((prev) => (prev === item.id ? null : prev));
     }
-
-    const normalized = updatedRaw
-      ? normalizeSheetItemData(updatedRaw)
-      : { ...item, paid_at: safePaidAt };
-
-    // 4) Atualiza a store final
-    setSheetItems((prev) =>
-      prev.map((s) => (s.id === normalized.id ? normalized : s))
-    );
-
-    showSuccessToast("Item atualizado", "Status de pagamento atualizado.");
-  } catch {
-    showErrorToast("Erro ao atualizar item de planilha");
-  } finally {
-    setUpdatingSheetItemId((prev) => (prev === item.id ? null : prev));
-    setSheetPaidPopoverId((prev) => (prev === item.id ? null : prev));
   }
-}
 
   /* ------------------------------------------------------------------------
    * BLOCKDOC: Create / Edit flow (modal)
@@ -431,17 +428,12 @@ async function updateSheetItemPaidStatus(
       if (!editing) {
         // Create new transaction
         const res = await api.post("/transactions", payload);
-        const created = normalizeTransactionData(
-          res.data.data ?? res.data
-        );
+        const created = normalizeTransactionData(res.data.data ?? res.data);
         setTransactions((prev) => [created, ...prev]);
         showSuccessToast("Transação criada!");
       } else if (editing.kind === "transaction") {
         // Update existing transaction
-        const res = await api.put(
-          `/transactions/${editing.id}`,
-          payload
-        );
+        const res = await api.put(`/transactions/${editing.id}`, payload);
         const updated = normalizeTransactionData(res.data.data ?? res.data);
         setTransactions((prev) =>
           prev.map((t) => (t.id === updated.id ? updated : t))
@@ -449,10 +441,7 @@ async function updateSheetItemPaidStatus(
         showSuccessToast("Transação atualizada!");
       } else if (editing.kind === "sheetitem") {
         // Update existing sheet item
-        const res = await api.put(
-          `/sheet-items/${editing.id}`,
-          payload
-        );
+        const res = await api.put(`/sheet-items/${editing.id}`, payload);
         const updated = normalizeSheetItemData(res.data.data ?? res.data);
         setSheetItems((prev) =>
           prev.map((s) => (s.id === updated.id ? updated : s))
@@ -888,14 +877,15 @@ async function updateSheetItemPaidStatus(
               const isPaid = !!s.paid_at;
               const overdue = isOverdueSheetItem(s);
 
-              // Same visual rule as the main Sheet screen:
-              // income or paid -> soft green; expense open -> soft red.
+              // Mesma regra visual da tela de Planilha:
+              // entrada ou despesa paga -> verde; despesa em aberto -> vermelho.
               const rowColorClass =
                 isIncome || isPaid ? "bg-[#E8F7EE]" : "bg-[#FCECEC]";
 
               const paidBadgeText = isPaid
                 ? `Pago em ${formatDateToText(s.paid_at)}`
                 : "";
+
               const overdueBadgeText =
                 !isPaid && overdue
                   ? `Vencido em ${formatDateToText(s.date)}`
