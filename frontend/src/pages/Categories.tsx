@@ -18,10 +18,14 @@ import {
   X,
   Loader2,
   Tag,
+  FileSpreadsheet,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { Card } from "../components/ui/Card";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // =========================================================
 // CONFIG: TOAST PADRÃO (PASTEL) — MESMO PADRÃO DE TRANSACTIONS
@@ -334,31 +338,31 @@ export default function Categories() {
   // =========================================================
 
   const SkeletonCategory = () => (
-    <div className="animate-pulse flex items-center justify-between border-t border-[#F1EEF9] px-4 py-3">
-      <div className="h-4 w-32 bg-[#EEE9FA] rounded-xl" />
-      <div className="h-4 w-20 bg-[#EEE9FA] rounded-xl" />
+    <div className="flex items-center justify-between border-t border-[#F1EEF9] px-4 py-3">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-4 w-20" />
     </div>
   );
 
   const SkeletonSheet = () => (
-    <tr className="animate-pulse border-t border-[#F1EEF9]">
+    <tr className="border-t border-[#F1EEF9]">
       <td className="p-3">
-        <div className="h-4 w-32 bg-[#EEE9FA] rounded-xl" />
+        <Skeleton className="h-4 w-32" />
       </td>
       <td className="p-3">
-        <div className="h-4 w-16 bg-[#EEE9FA] rounded-xl" />
+        <Skeleton className="h-4 w-16" />
       </td>
       <td className="p-3 text-right">
-        <div className="h-4 w-16 bg-[#EEE9FA] rounded-xl ml-auto" />
+        <Skeleton className="h-4 w-16 ml-auto" />
       </td>
       <td className="p-3 text-right">
-        <div className="h-4 w-16 bg-[#EEE9FA] rounded-xl ml-auto" />
+        <Skeleton className="h-4 w-16 ml-auto" />
       </td>
       <td className="p-3 text-right">
-        <div className="h-4 w-16 bg-[#EEE9FA] rounded-xl ml-auto" />
+        <Skeleton className="h-4 w-16 ml-auto" />
       </td>
       <td className="p-3 text-right">
-        <div className="h-4 w-10 bg-[#EEE9FA] rounded-xl ml-auto" />
+        <Skeleton className="h-4 w-10 ml-auto" />
       </td>
     </tr>
   );
@@ -369,36 +373,34 @@ export default function Categories() {
 
   return (
     <div className="animate-fadeIn space-y-10 pb-20">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold text-[#2F2F36] tracking-tight">
-          Categorias
-        </h1>
-
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-[#7B61FF] text-white px-5 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-[#6A54E6] transition"
-        >
-          <FolderPlus size={18} /> Nova Categoria
-        </button>
-      </div>
+      <PageHeader
+        title="Categorias"
+        icon={<FolderTree size={20} />}
+        actions={
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-[#7B61FF] text-white px-5 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-[#6A54E6] transition"
+          >
+            <FolderPlus size={18} /> Nova Categoria
+          </button>
+        }
+      />
 
       {/* MAIN GRID */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* CATEGORIES TABLE */}
-        <div className="bg-white border rounded-3xl shadow-sm border-[#E4E2F0]">
-          <div className="px-6 py-5 border-b border-[#F2EEF9]">
-            <h2 className="text-lg font-semibold text-[#2F2F36]">
-              Categorias
-            </h2>
-          </div>
-
+        <Card
+          title="Categorias"
+          icon={<FolderTree size={18} />}
+          noContentPadding
+          contentClassName="p-0"
+        >
           {loadingCategories ? (
-            <>
+            <div>
               {Array.from({ length: 6 }).map((_, i) => (
                 <SkeletonCategory key={i} />
               ))}
-            </>
+            </div>
           ) : (
             <table className="w-full">
               <thead className="bg-[#F6F4FF] text-[#4B4A54]">
@@ -470,16 +472,15 @@ export default function Categories() {
               </tbody>
             </table>
           )}
-        </div>
+        </Card>
 
         {/* SHEETS TABLE */}
-        <div className="bg-white border rounded-3xl shadow-sm border-[#E4E2F0]">
-          <div className="px-6 py-5 border-b border-[#F2EEF9]">
-            <h2 className="text-lg font-semibold text-[#2F2F36]">
-              Planilhas vinculadas
-            </h2>
-          </div>
-
+        <Card
+          title="Planilhas vinculadas"
+          icon={<FileSpreadsheet size={18} />}
+          noContentPadding
+          contentClassName="p-0"
+        >
           {!selectedCategory ? (
             <p className="p-6 text-gray-500 text-sm">
               Selecione uma categoria para visualizar as planilhas.
@@ -551,7 +552,7 @@ export default function Categories() {
               </table>
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* ========================================================
