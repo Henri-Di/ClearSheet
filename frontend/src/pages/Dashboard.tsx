@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { useDashboardData } from "../features/dashboard/hooks/useDashboardData";
 
 import {
   FileSpreadsheet,
@@ -28,29 +27,6 @@ import {
 } from "recharts";
 
 // ========================================================
-// TYPES
-// ========================================================
-export interface ChartRow {
-  [key: string]: string | number;
-}
-
-export interface MonthlyData extends ChartRow {
-  month: string;
-  income: number;
-  expense: number;
-}
-
-export interface BalanceData extends ChartRow {
-  month: string;
-  balance: number;
-}
-
-export interface CategoryData extends ChartRow {
-  name: string;
-  total: number;
-}
-
-// ========================================================
 // COLORS
 // ========================================================
 const COLORS = ["#7B61FF", "#E76BA3", "#2F4A8A", "#A680FF", "#FFB672"];
@@ -59,58 +35,14 @@ const COLORS = ["#7B61FF", "#E76BA3", "#2F4A8A", "#A680FF", "#FFB672"];
 // COMPONENT
 // ========================================================
 export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, error, refetch } = useDashboardData();
 
-  const [stats, setStats] = useState({
-    sheets: 0,
-    categories: 0,
-    transactions: 0,
-    users: 0,
-  });
-
-  const [monthly, setMonthly] = useState<MonthlyData[]>([]);
-  const [balances, setBalances] = useState<BalanceData[]>([]);
-  const [categoriesGraph, setCategoriesGraph] = useState<CategoryData[]>([]);
-
-  async function loadAll() {
-    try {
-      setLoading(true);
-
-      const [countsRes, monthlyRes, balanceRes, categoriesRes] =
-        await Promise.all([
-          api.get("/dashboard/counts"),
-          api.get("/dashboard/monthly"),
-          api.get("/dashboard/balance"),
-          api.get("/dashboard/categories"),
-        ]);
-
-      const c = countsRes.data.data;
-
-      setStats({
-        sheets: c.sheets,
-        categories: c.categories,
-        transactions: c.transactions,
-        users: c.users,
-      });
-
-      setMonthly(monthlyRes.data.data);
-      setBalances(balanceRes.data.data);
-      setCategoriesGraph(categoriesRes.data.data);
-    } catch (err) {
-      console.error("Erro ao carregar dashboard:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadAll();
-  }, []);
+  const { stats, monthly, balances, categoriesGraph } = data;
 
   // ========================================================
   // VIEW — LOADING SKELETON
   // ========================================================
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-12 animate-pulse space-y-12">
         <div className="h-10 bg-gray-200 rounded-xl w-64"></div>
@@ -128,6 +60,24 @@ export default function Dashboard() {
         </div>
 
         <div className="h-80 bg-gray-200 rounded-3xl"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-12 space-y-6">
+        <div className="bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl">
+          <p className="font-semibold">Não foi possível carregar o painel.</p>
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+
+        <button
+          onClick={refetch}
+          className="px-4 py-2 bg-[#7B61FF] text-white rounded-lg hover:brightness-110 transition"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
@@ -241,9 +191,9 @@ export default function Dashboard() {
                 cx="50%"
                 cy="50%"
                 outerRadius={120}
-                label={(props: any) => {
-                  if (!props || typeof props.value !== "number") return "";
-                  return `${props.name}: R$ ${props.value.toFixed(2)}`;
+                label={({ name, value }: { name?: string; value?: number }) => {
+                  if (typeof value !== "number" || typeof name !== "string") return "";
+                  return `${name}: R$ ${value.toFixed(2)}`;
                 }}
               >
                 {categoriesGraph.map((_, i) => (
