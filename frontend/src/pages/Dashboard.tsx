@@ -27,6 +27,11 @@ import {
   CartesianGrid,
 } from "recharts";
 
+import { ChartCard } from "../components/ui/ChartCard";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Skeleton } from "../components/ui/Skeleton";
+import { StatBadge } from "../components/ui/StatBadge";
+
 // ========================================================
 // TYPES
 // ========================================================
@@ -112,22 +117,21 @@ export default function Dashboard() {
   // ========================================================
   if (loading) {
     return (
-      <div className="p-12 animate-pulse space-y-12">
-        <div className="h-10 bg-gray-200 rounded-xl w-64"></div>
+      <div className="p-12 space-y-12">
+        <Skeleton className="h-10 w-64" />
 
-        <div className="grid grid-cols-4 gap-6">
-          <div className="h-32 bg-gray-200 rounded-3xl"></div>
-          <div className="h-32 bg-gray-200 rounded-3xl"></div>
-          <div className="h-32 bg-gray-200 rounded-3xl"></div>
-          <div className="h-32 bg-gray-200 rounded-3xl"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-3xl" />
+          ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="h-80 bg-gray-200 rounded-3xl"></div>
-          <div className="h-80 bg-gray-200 rounded-3xl"></div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <Skeleton className="h-80 rounded-3xl" />
+          <Skeleton className="h-80 rounded-3xl" />
         </div>
 
-        <div className="h-80 bg-gray-200 rounded-3xl"></div>
+        <Skeleton className="h-80 rounded-3xl" />
       </div>
     );
   }
@@ -137,40 +141,38 @@ export default function Dashboard() {
   // ========================================================
   return (
     <div className="animate-fadeIn space-y-14 pb-20">
-      {/* TITLE */}
-      <div className="flex items-center gap-3">
-        <BarChart3 size={32} className="text-[#7B61FF]" />
-        <h1 className="font-display text-4xl font-semibold text-[#2F2F36] tracking-tight">
-          Painel de Controle
-        </h1>
-      </div>
+      <PageHeader
+        title="Painel de Controle"
+        icon={<BarChart3 size={28} />}
+        subtitle="Visão geral das suas finanças e categorias."
+      />
 
       {/* TOP CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <DashboardCard
+        <StatBadge
           icon={<FileSpreadsheet size={26} />}
-          iconBg="bg-[#EDE7FF]"
+          iconBgClassName="bg-[#EDE7FF]"
           title="Planilhas"
           value={stats.sheets}
         />
 
-        <DashboardCard
+        <StatBadge
           icon={<FolderTree size={26} />}
-          iconBg="bg-[#F4E9FF]"
+          iconBgClassName="bg-[#F4E9FF]"
           title="Categorias"
           value={stats.categories}
         />
 
-        <DashboardCard
+        <StatBadge
           icon={<Receipt size={26} />}
-          iconBg="bg-[#FCEEFF]"
+          iconBgClassName="bg-[#FCEEFF]"
           title="Transações"
           value={stats.transactions}
         />
 
-        <DashboardCard
+        <StatBadge
           icon={<Users size={26} />}
-          iconBg="bg-[#EEF0FF]"
+          iconBgClassName="bg-[#EEF0FF]"
           title="Usuários"
           value={stats.users}
         />
@@ -258,64 +260,3 @@ export default function Dashboard() {
   );
 }
 
-// ========================================================
-// CARD COMPONENT
-// ========================================================
-interface CardProps {
-  icon: React.ReactNode;
-  iconBg: string;
-  title: string;
-  value: number;
-}
-
-function DashboardCard({ icon, iconBg, title, value }: CardProps) {
-  return (
-    <div
-      className="
-        bg-white p-6 rounded-3xl border border-[#E6E1F7]
-        shadow-sm hover:shadow-md hover:-translate-y-1
-        transition-all cursor-default relative
-      "
-    >
-      <div
-        className={`
-          absolute -top-4 left-4 p-3 rounded-2xl shadow-sm border border-white
-          ${iconBg}
-        `}
-      >
-        {icon}
-      </div>
-
-      <div className="mt-6">
-        <p className="text-sm text-[#5A556A] font-medium mb-1">{title}</p>
-        <h3 className="text-4xl font-display font-semibold text-[#2F2F36] tracking-tight">
-          {value}
-        </h3>
-      </div>
-    </div>
-  );
-}
-
-// ========================================================
-// CHART CARD
-// ========================================================
-interface ChartCardProps {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}
-
-function ChartCard({ title, icon, children }: ChartCardProps) {
-  return (
-    <div className="bg-white border border-[#E6E1F7] rounded-3xl shadow-lg p-6">
-      <div className="flex items-center gap-2 mb-4">
-        {icon}
-        <h2 className="text-lg font-semibold text-[#2F2F36]">
-          {title}
-        </h2>
-      </div>
-
-      {children}
-    </div>
-  );
-}

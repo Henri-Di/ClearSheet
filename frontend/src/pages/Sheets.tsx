@@ -20,6 +20,9 @@ import {
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { CreateSheetModal } from "../components/modals/CreateSheetModal";
+import { Card } from "../components/ui/Card";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Skeleton } from "../components/ui/Skeleton";
 
 /* ============================================================================
  * GLOBAL TOAST SYSTEM (MESMO PADRÃO DE TRANSACTIONS)
@@ -310,63 +313,58 @@ export default function Sheets() {
 
   return (
     <div className="animate-fadeIn space-y-10 pb-20">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-10">
-        <h1 className="font-display text-3xl font-semibold text-[#2F2F36] tracking-tight">
-          Planilhas
-        </h1>
-
-        <button
-          onClick={() => setCreateModalOpen(true)}
-          className="bg-[#7B61FF] text-white px-5 py-3 rounded-xl font-medium
-                     flex items-center gap-2 hover:bg-[#6A54E6]
-                     transition shadow-sm hover:shadow-md"
-        >
-          <Plus size={18} />
-          Nova Planilha
-        </button>
-      </div>
+      <PageHeader
+        title="Planilhas"
+        icon={<FileSpreadsheet size={22} />}
+        subtitle="Organize entradas, saídas e saldos das suas planilhas."
+        actions={
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="bg-[#7B61FF] text-white px-5 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-[#6A54E6] transition shadow-sm hover:shadow-md"
+          >
+            <Plus size={18} />
+            Nova Planilha
+          </button>
+        }
+      />
 
       {/* SEARCH + SORT */}
-      <div className="bg-white border rounded-3xl p-6 shadow-sm border-[#E4E2F0] mb-10 flex items-center gap-4">
-        <div className="flex items-center gap-2 flex-1 bg-[#FBFAFF] border border-[#E0DEED] rounded-xl px-4 py-3">
-          <Search size={18} className="text-gray-500" />
-          <input
-            type="text"
-            placeholder="Buscar planilhas..."
-            className="flex-1 bg-transparent focus:outline-none text-[#3A3A45]"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+      <Card className="mb-10" contentClassName="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2 flex-1 bg-[#FBFAFF] border border-[#E0DEED] rounded-xl px-4 py-3">
+            <Search size={18} className="text-gray-500" />
+            <input
+              type="text"
+              placeholder="Buscar planilhas..."
+              className="flex-1 bg-transparent focus:outline-none text-[#3A3A45]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-        <button
-          onClick={() => setSortAsc((prev) => !prev)}
-          className="flex items-center gap-2 text-[#7B61FF] font-medium
-                     bg-[#F0ECFF] border border-[#E3DEFF] px-4 py-3 rounded-xl
-                     hover:bg-[#E7E0FF] transition"
-        >
-          <ArrowUpDown size={16} />
-          Ordenar
-        </button>
-      </div>
+          <button
+            onClick={() => setSortAsc((prev) => !prev)}
+            className="flex items-center justify-center gap-2 text-[#7B61FF] font-medium bg-[#F0ECFF] border border-[#E3DEFF] px-4 py-3 rounded-xl hover:bg-[#E7E0FF] transition"
+          >
+            <ArrowUpDown size={16} />
+            Ordenar
+          </button>
+        </div>
+      </Card>
 
       {/* LOADER */}
       {loading && (
         <div className="space-y-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-white border border-[#EAE7F6] rounded-3xl p-6 shadow-sm animate-pulse"
-            >
+            <Card key={i} contentClassName="p-6" className="border-[#EAE7F6]">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#F3F0FF] rounded-2xl" />
+                <Skeleton className="w-14 h-14" />
                 <div className="flex-1 space-y-3">
-                  <div className="h-4 w-48 bg-[#EEE9FA] rounded-xl" />
-                  <div className="h-3 w-32 bg-[#EEE9FA] rounded-xl" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-32" />
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
@@ -450,9 +448,9 @@ function SheetCard({ sheet, summary, onDelete, onEdit }: CardProps) {
   const final = Number(summary?.saldo_final ?? initial + entradas - saidas);
 
   return (
-    <div
-      className="bg-white border border-[#E6E1F7] rounded-3xl p-6 shadow-sm
-                 hover:shadow-md hover:-translate-y-1 transition"
+    <Card
+      className="hover:shadow-md hover:-translate-y-1 transition"
+      contentClassName="p-6"
     >
       <div className="flex items-center justify-between">
         {/* LEFT */}
@@ -535,7 +533,7 @@ function SheetCard({ sheet, summary, onDelete, onEdit }: CardProps) {
           icon={<ArrowRight className="text-[#7B61FF]" />}
         />
       </div>
-    </div>
+    </Card>
   );
 }
 
