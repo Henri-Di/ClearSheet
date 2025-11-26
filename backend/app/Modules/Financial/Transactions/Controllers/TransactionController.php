@@ -15,14 +15,6 @@ class TransactionController extends Controller
         private TransactionService $service
     ) {}
 
-    /*
-    |--------------------------------------------------------------------------
-    | INDEX
-    |--------------------------------------------------------------------------
-    | Lista todas as transações do usuário.
-    | Aceita filtro opcional por sheet_id.
-    */
-
     public function index(Request $request)
     {
         $sheetId = $request->query('sheet_id');
@@ -32,17 +24,15 @@ class TransactionController extends Controller
             $sheetId ? (int) $sheetId : null
         );
 
-        return ApiResponse::success(
-            $transactions,
-            'Transações carregadas com sucesso.'
-        );
+        return ApiResponse::success($transactions, 'Transações carregadas com sucesso.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | STORE
-    |--------------------------------------------------------------------------
-    */
+    public function indexGlobal(Request $request)
+    {
+        $transactions = $this->service->listGlobalForUser($request->user()->id);
+
+        return ApiResponse::success($transactions, 'Transações globais carregadas com sucesso.');
+    }
 
     public function store(CreateTransactionRequest $request)
     {
@@ -51,19 +41,10 @@ class TransactionController extends Controller
             $request->validated()
         );
 
-        $transaction->load('category');
+        $transaction->load(['category', 'bank', 'sheet']);
 
-        return ApiResponse::success(
-            $transaction,
-            'Transação criada com sucesso.'
-        );
+        return ApiResponse::success($transaction, 'Transação criada com sucesso.');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    */
 
     public function update($id, UpdateTransactionRequest $request)
     {
@@ -81,19 +62,10 @@ class TransactionController extends Controller
             $request->validated()
         );
 
-        $updated->load('category');
+        $updated->load(['category', 'bank', 'sheet']);
 
-        return ApiResponse::success(
-            $updated,
-            'Transação atualizada com sucesso.'
-        );
+        return ApiResponse::success($updated, 'Transação atualizada com sucesso.');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE
-    |--------------------------------------------------------------------------
-    */
 
     public function destroy($id, Request $request)
     {
@@ -108,9 +80,6 @@ class TransactionController extends Controller
 
         $this->service->deleteTransaction($transaction);
 
-        return ApiResponse::success(
-            [],
-            'Transação removida com sucesso.'
-        );
+        return ApiResponse::success([], 'Transação removida com sucesso.');
     }
 }

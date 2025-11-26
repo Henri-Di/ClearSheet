@@ -47,18 +47,13 @@ class SheetItemController extends Controller
         }
 
         $data = $request->validated();
-
-        // valor sempre positivo
         $data['value'] = abs($data['value']);
-
-        // campos opcionais
         $data['category_id'] = $data['category_id'] ?: null;
-        $data['bank_id']     = $data['bank_id'] ?: null;
-        $data['paid_at']     = $data['paid_at'] ?: null;
-        $data['date']        = $data['date'] ?: null;   // ← CORREÇÃO
+        $data['bank_id'] = $data['bank_id'] ?: null;
+        $data['paid_at'] = $data['paid_at'] ?: null;
+        $data['date'] = $data['date'] ?: null;
 
         $item = $sheet->items()->create($data);
-
         $item->load(['category', 'bank']);
 
         return ApiResponse::success(
@@ -79,32 +74,17 @@ class SheetItemController extends Controller
 
         $data = $request->validated();
 
-        // valor sempre positivo
         if (isset($data['value'])) {
             $data['value'] = abs($data['value']);
         }
 
-        // normalização dos campos opcionais
-        if (array_key_exists('category_id', $data)) {
-            $data['category_id'] = $data['category_id'] ?: null;
-        }
-
-        if (array_key_exists('bank_id', $data)) {
-            $data['bank_id'] = $data['bank_id'] ?: null;
-        }
-
-        // normalização da data
-        if (array_key_exists('date', $data)) {
-            $data['date'] = $data['date'] ?: null;
-        }
-
-        // atualização do pagamento
-        if (array_key_exists('paid_at', $data)) {
-            $data['paid_at'] = $data['paid_at'] ?: null;
+        foreach (['category_id', 'bank_id', 'date', 'paid_at'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $data[$field] ?: null;
+            }
         }
 
         $item->update($data);
-
         $item->load(['category', 'bank']);
 
         return ApiResponse::success(
@@ -130,10 +110,10 @@ class SheetItemController extends Controller
 
     public function all()
     {
-        $items = SheetItem::with(['category', 'sheet'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($items);
+        return response()->json(
+            SheetItem::with(['category', 'sheet'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+        );
     }
 }

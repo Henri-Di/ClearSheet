@@ -1,29 +1,12 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-} from "react-router-dom";
-
-import MainLayout from "./layouts/MainLayout";
-import { ProtectedRoute } from "./routes/ProtectedRoute";
-import { privateRoutes, publicRoutes } from "./routes";
+import { useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes/router";
+import { loadTheme } from "./utils/theme";
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        {publicRoutes}
+  useEffect(() => {
+    loadTheme();
+  }, []);
 
-        <Route
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          {privateRoutes}
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 }
