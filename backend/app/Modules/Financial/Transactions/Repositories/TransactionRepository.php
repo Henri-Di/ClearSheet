@@ -8,17 +8,26 @@ class TransactionRepository
 {
     public function allForUser(int $userId, ?int $sheetId = null)
     {
-        return Transaction::with('category')
+        return Transaction::with(['category', 'bank'])
             ->where('user_id', $userId)
-            ->when($sheetId, fn ($q) => $q->where('sheet_id', $sheetId))
+            ->when($sheetId, fn($q) => $q->where('sheet_id', $sheetId))
             ->orderBy('date', 'desc')
-            ->orderBy('id', 'desc')
-            ->get();
+            ->get()
+            ->map(fn($t) => $t->toUnifiedArray());
     }
 
-    public function create(array $data): Transaction
+    public function allGlobal(int $userId)
     {
-        return Transaction::create($data);
+        return Transaction::with(['category', 'bank'])
+            ->where('user_id', $userId)
+            ->orderBy('date', 'desc')
+            ->get()
+            ->map(fn($t) => $t->toUnifiedArray());
+    }
+
+    public function create(array $payload): Transaction
+    {
+        return Transaction::create($payload);
     }
 
     public function findForUser(int $id, int $userId): ?Transaction
@@ -28,14 +37,14 @@ class TransactionRepository
             ->first();
     }
 
-    public function update(Transaction $transaction, array $data): Transaction
+    public function update(Transaction $t, array $payload): Transaction
     {
-        $transaction->update($data);
-        return $transaction;
+        $t->update($payload);
+        return $t;
     }
 
-    public function delete(Transaction $transaction): void
+    public function delete(Transaction $t): void
     {
-        $transaction->delete();
+        $t->delete();
     }
 }
