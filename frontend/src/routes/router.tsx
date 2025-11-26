@@ -1,30 +1,31 @@
 // src/routes/router.tsx
-
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 
-// Pages
 import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import Categories from "../pages/Categories";
-import Sheets from "../pages/Sheets";
-import SheetView from "../pages/SheetView";   // <-- IMPORTANTE
-import Transactions from "../pages/Transactions";
+import Dashboard from "../modules/dashboard/pages/Dashboard";
+import Categories from "../modules/categories/pages/Categories";
+import Sheets from "../modules/sheets/pages/Sheets";
+import Transactions from "../modules/transactions/pages/TransactionsPage";
+import SheetViewPage from "../modules/sheetView/pages/SheetView";
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
-
-  // Login público
+ 
   {
     path: "/login",
     element: <Login />,
   },
 
-  // Rotas protegidas
   {
     path: "/",
+    element: <Navigate to="/login" replace />,
+  },
+
+  {
+    path: "/app",
     element: (
       <ProtectedRoute>
         <MainLayout />
@@ -34,13 +35,17 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <Dashboard /> },
       { path: "categories", element: <Categories /> },
-
-      // === Sheets ===
       { path: "sheets", element: <Sheets /> },
-      { path: "sheets/:id", element: <SheetView /> },   // <-- ROTA CORRETA
-
-      // Transactions
+      { path: "sheets/:id", element: <SheetViewPage /> },
       { path: "transactions", element: <Transactions /> },
+
+      { path: "*", element: <Navigate to="/app/dashboard" replace /> },
     ],
+  },
+
+ 
+  {
+    path: "*",
+    element: <Navigate to="/login" replace />,
   },
 ]);
