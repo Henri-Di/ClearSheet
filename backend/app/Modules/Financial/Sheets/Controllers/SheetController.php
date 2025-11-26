@@ -15,36 +15,26 @@ class SheetController extends Controller
         private SheetService $service
     ) {}
 
-    /**
-     * Lista planilhas do usuário autenticado.
-     */
     public function index(Request $request)
     {
         $userId = $request->user()->id;
-
         $sheets = $this->service->listForUser($userId);
 
-        // Sempre retorna lista, nunca 204
         return ApiResponse::success(
             $sheets,
             'Sheets loaded successfully'
         );
     }
 
-    /**
-     * Exibe uma planilha específica do usuário.
-     */
     public function show(int $id, Request $request)
     {
         $userId = $request->user()->id;
-
         $sheet = $this->service->findForUser($id, $userId);
 
         if (!$sheet) {
             return ApiResponse::error('Sheet not found', 404);
         }
 
-        // Carrega também os items (SheetItem)
         $sheet->load('items');
 
         return ApiResponse::success(
@@ -53,9 +43,6 @@ class SheetController extends Controller
         );
     }
 
-    /**
-     * Cria nova planilha.
-     */
     public function store(CreateSheetRequest $request)
     {
         $userId = $request->user()->id;
@@ -71,13 +58,9 @@ class SheetController extends Controller
         );
     }
 
-    /**
-     * Atualiza planilha existente.
-     */
     public function update(int $id, UpdateSheetRequest $request)
     {
         $userId = $request->user()->id;
-
         $sheet = $this->service->findForUser($id, $userId);
 
         if (!$sheet) {
@@ -95,13 +78,9 @@ class SheetController extends Controller
         );
     }
 
-    /**
-     * Exclui planilha.
-     */
     public function destroy(int $id, Request $request)
     {
         $userId = $request->user()->id;
-
         $sheet = $this->service->findForUser($id, $userId);
 
         if (!$sheet) {
@@ -119,14 +98,12 @@ class SheetController extends Controller
     public function summary(int $id, Request $request)
     {
         $userId = $request->user()->id;
-
         $sheet = $this->service->findForUser($id, $userId);
 
         if (!$sheet) {
             return ApiResponse::error('Sheet not found', 404);
         }
 
-        // Pré-carregar somente o necessário (muito rápido)
         $entradas = $sheet->items()
             ->where('type', 'income')
             ->sum('value');
@@ -135,13 +112,15 @@ class SheetController extends Controller
             ->where('type', 'expense')
             ->sum('value');
 
-        return ApiResponse::success([
-            'sheet_id'     => $sheet->id,
-            'entradas'     => (float) $entradas,
-            'saidas'       => (float) $saidas,
-            'initial'      => (float) $sheet->initial_balance,
-            'saldo_final'  => (float) ($sheet->initial_balance + $entradas - $saidas),
-        ], 'Summary loaded successfully');
+        return ApiResponse::success(
+            [
+                'sheet_id'    => $sheet->id,
+                'entradas'    => (float) $entradas,
+                'saidas'      => (float) $saidas,
+                'initial'     => (float) $sheet->initial_balance,
+                'saldo_final' => (float) ($sheet->initial_balance + $entradas - $saidas),
+            ],
+            'Summary loaded successfully'
+        );
     }
-
 }

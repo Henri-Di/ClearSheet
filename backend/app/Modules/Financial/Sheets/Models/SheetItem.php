@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use App\Modules\Financial\Categories\Models\Category;
 use App\Modules\Financial\Banks\Models\Bank;
+use App\Modules\Financial\Sheets\Models\Sheet;
 
 class SheetItem extends Model
 {
@@ -28,13 +29,9 @@ class SheetItem extends Model
 
     protected $casts = [
         'value'   => 'decimal:2',
-        'date'    => 'date',
-        'paid_at' => 'date',
+        'date'    => 'string',
+        'paid_at' => 'string',
     ];
-
-    // ============================
-    // RELATIONSHIPS
-    // ============================
 
     public function sheet()
     {
@@ -50,10 +47,6 @@ class SheetItem extends Model
     {
         return $this->belongsTo(Bank::class, 'bank_id');
     }
-
-    // ============================
-    // ACCESSORS / MUTATORS
-    // ============================
 
     public function setTypeAttribute($value)
     {
@@ -89,14 +82,14 @@ class SheetItem extends Model
     public function getFormattedDateAttribute()
     {
         return $this->date
-            ? $this->date->format('d/m/Y')
+            ? Carbon::parse($this->date)->format('d/m/Y')
             : null;
     }
 
     public function getFormattedPaidAtAttribute()
     {
         return $this->paid_at
-            ? $this->paid_at->format('d/m/Y')
+            ? Carbon::parse($this->paid_at)->format('d/m/Y')
             : null;
     }
 
@@ -113,29 +106,33 @@ class SheetItem extends Model
         return '#DC2626';
     }
 
-    // ============================
-    // SCOPES
-    // ============================
-
     public function scopeSearch(Builder $query, ?string $term)
     {
         if (!$term) return $query;
 
         return $query->where(function ($q) use ($term) {
             $q->where('description', 'like', "%{$term}%")
-              ->orWhereHas('category', function ($q2) use ($term) {
-                  $q2->where('name', 'like', "%{$term}%");
-              })
-              ->orWhereHas('bank', function ($q3) use ($term) {
-                  $q3->where('name', 'like', "%{$term}%");
-              })
-              ->orWhere('value', 'like', "%{$term}%");
+                ->orWhereHas('category', fn($q2) =>
+                    $q2->where('name', 'like', "%{$term}%")
+                )
+                ->orWhereHas('bank', fn($q3) =>
+                    $q3->where('name', 'like', "%{$term}%")
+                )
+                ->orWhere('value', 'like', "%{$term}%");
         });
     }
 
     public function scopeOrderExcel(Builder $query, $column, $direction = 'asc')
     {
-        $allowed = ['date', 'value', 'category_id', 'bank_id', 'type', 'created_at', 'paid_at'];
+        $allowed = [
+            'date',
+            'value',
+            'category_id',
+            'bank_id',
+            'type',
+            'created_at',
+            'paid_at',
+        ];
 
         if (!in_array($column, $allowed)) {
             $column = 'date';
@@ -144,70 +141,56 @@ class SheetItem extends Model
         return $query->orderBy($column, $direction);
     }
 
-    // ============================
-    // SCOPES FALTANTES (ERRO 500)
-    // ============================
-
-    // ✔ BETWEEN DATES (filtro de datas)
     public function scopeBetweenDates(Builder $query, $start, $end)
     {
-        if ($start) {
-            $query->whereDate('date', '>=', $start);
-        }
-
-        if ($end) {
-            $query->whereDate('date', '<=', $end);
-        }
+        if ($start) $query->whereDate('date', '>=', $start);
+        if ($end)   $query->whereDate('date', '<=', $end);
 
         return $query;
     }
 
-    // ✔ RANGE DE VALORES (mínimo/máximo)
     public function scopeValueRange(Builder $query, $min, $max)
     {
-        if (!is_null($min) && $min !== '') {
+        if ($min !== null && $min !== '') {
             $query->where('value', '>=', $min);
         }
 
-        if (!is_null($max) && $max !== '') {
+        if ($max !== null && $max !== '') {
             $query->where('value', '<=', $max);
         }
 
         return $query;
     }
 
-    // ============================
-    // RESOURCE ARRAY
-    // ============================
-
     public function toResourceArray()
     {
         return [
             'id'               => $this->id,
             'sheet_id'         => $this->sheet_id,
-
             'type'             => $this->type,
             'value'            => $this->value,
             'formatted_value'  => $this->formatted_value,
-
-            'category' => $this->category
-                ? ['id' => $this->category->id, 'name' => $this->category->name]
+            'category_id'      => $this->category_id,
+            'bank_id'          => $this->bank_id,
+            'category'         => $this->category
+                ? [
+                    'id'   => $this->category->id,
+                    'name' => $this->category->name,
+                    'icon' => $this->category->icon,
+                ]
                 : null,
-
-            'bank' => $this->bank
-                ? ['id' => $this->bank->id, 'name' => $this->bank->name]
+            'bank'             => $this->bank
+                ? [
+                    'id'   => $this->bank->id,
+                    'name' => $this->bank->name,
+                ]
                 : null,
-
-            'bank_id' => $this->bank_id,
-
-            'description'        => $this->description,
-            'date'               => $this->date,
-            'formatted_date'     => $this->formatted_date,
-
-            'paid_at'            => $this->paid_at,
-            'formatted_paid_at'  => $this->formatted_paid_at,
-
-            'color' => $this->color,
+            'description'       => $this->description,
+            'date'              => $this->date,
+            'formatted_date'    => $this->formatted_date,
+            'paid_at'           => $this->paid_at,
+            'formatted_paid_at' => $this->formatted_paid_at,
+            'color'             => $this->color,
         ];
     }
 }
