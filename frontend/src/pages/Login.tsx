@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClearSheetLogo } from "../layouts/ClearSheetLogo";
 
@@ -26,6 +26,32 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ============================================================
+  // 🔒 BLOQUEIA O DARK MODE SOMENTE NO LOGIN
+  // ============================================================
+  useEffect(() => {
+    const html = document.documentElement;
+
+    // Remove tema dark ao entrar no login
+    if (html.classList.contains("dark")) {
+      html.classList.remove("dark");
+    }
+
+    // Impede que qualquer componente tente recolocar dark
+    const observer = new MutationObserver(() => {
+      if (html.classList.contains("dark")) {
+        html.classList.remove("dark");
+      }
+    });
+
+    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ============================================================
+  // ÍCONES FLUTUANTES
+  // ============================================================
   const icons = [
     { icon: <CreditCard size={80} className="text-[#7B61FF]" />, delay: 0 },
     { icon: <Landmark size={95} className="text-[#7B61FF]" />, delay: 3 },
@@ -63,30 +89,30 @@ export default function Login() {
         data?.token ??
         "";
 
-      let token = String(rawToken).replace(/^"|"$/g, "").trim();
+      const token = String(rawToken).replace(/^"|"$/g, "").trim();
 
       if (!token || token.length < 30) {
         setError("Token inválido recebido");
         return;
       }
 
-      localStorage.removeItem("token");
       localStorage.setItem("token", token);
-
       navigate("/app/dashboard", { replace: true });
 
-    } catch (e) {
+    } catch {
       setError("Erro ao conectar ao servidor");
     } finally {
       setLoading(false);
     }
   }
 
-
+  // ============================================================
+  // LAYOUT DO LOGIN
+  // ============================================================
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#FAFAFF] overflow-hidden p-6">
+    <div className="relative min-h-screen overflow-hidden bg-[#FAFAFF]">
 
-
+      {/* ÍCONES ANIMADOS */}
       {icons.map((item, index) => (
         <motion.div
           key={index}
@@ -113,104 +139,106 @@ export default function Login() {
         </motion.div>
       ))}
 
-
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="
-          relative z-10 w-full max-w-md 
-          bg-white 
-          border border-[#E4E2F0]
-          rounded-3xl 
-          shadow-lg 
-          p-10
-          backdrop-blur-xl
-        "
-      >
-        <div className="flex justify-center mb-8">
-          <ClearSheetLogo size={120} />
-        </div>
-
-        <h1 className="text-2xl font-display text-[#2F2F36] font-semibold text-center mb-6 tracking-tight">
-          Acesse sua conta
-        </h1>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 border border-red-200 p-3 mb-5 rounded-xl text-sm text-center">
-            {error}
+      {/* CARD DO LOGIN */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="
+            w-full max-w-md 
+            bg-white 
+            border border-[#E4E2F0]
+            rounded-3xl 
+            shadow-lg 
+            p-10
+            backdrop-blur-xl
+          "
+        >
+          <div className="flex justify-center mb-8">
+            {/* LOGO FORÇADA PARA CLARO */}
+            <ClearSheetLogo size={120} forceLight />
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="flex flex-col gap-1">
-            <label className="font-medium text-[#3A3A45]">E-mail</label>
-            <input
-              type="email"
+          <h1 className="text-2xl font-display text-[#2F2F36] font-semibold text-center mb-6 tracking-tight">
+            Acesse sua conta
+          </h1>
+
+          {error && (
+            <div className="bg-red-50 text-red-600 border border-red-200 p-3 mb-5 rounded-xl text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="flex flex-col gap-1">
+              <label className="font-medium text-[#3A3A45]">E-mail</label>
+              <input
+                type="email"
+                className="
+                  w-full px-4 py-3 rounded-xl 
+                  bg-[#FBFAFF] 
+                  border border-[#E0DEED] 
+                  focus:ring-2 focus:ring-[#7B61FF] focus:border-[#7B61FF]
+                  outline-none transition
+                "
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="font-medium text-[#3A3A45]">Senha</label>
+              <input
+                type="password"
+                className="
+                  w-full px-4 py-3 rounded-xl 
+                  bg-[#FBFAFF] 
+                  border border-[#E0DEED] 
+                  focus:ring-2 focus:ring-[#7B61FF] focus:border-[#7B61FF]
+                  outline-none transition
+                "
+                placeholder="•••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
               className="
-                w-full px-4 py-3 rounded-xl 
-                bg-[#FBFAFF] 
-                border border-[#E0DEED] 
-                focus:ring-2 focus:ring-[#7B61FF] focus:border-[#7B61FF]
-                outline-none transition
+                w-full flex items-center justify-center gap-2
+                bg-[#7B61FF] text-white 
+                py-3 rounded-xl 
+                text-base font-medium 
+                shadow-sm hover:bg-[#6A54E6]
+                transition disabled:opacity-50 disabled:cursor-not-allowed
               "
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            >
+              {loading && <Loader2 size={18} className="animate-spin" />}
+              Entrar
+            </button>
+          </form>
+
+          <div className="text-center mt-10">
+            <p className="text-xs text-gray-500 tracking-wide">
+              <strong>ClearSheet 2.0</strong>
+            </p>
+
+            <p className="text-[11px] text-gray-400">
+              Desenvolvido por <strong>Studio M&D</strong>
+            </p>
+
+            <p className="text-[10px] text-gray-400 mt-2">
+              © {new Date().getFullYear()} ClearSheet • Todos os direitos reservados
+            </p>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="font-medium text-[#3A3A45]">Senha</label>
-            <input
-              type="password"
-              className="
-                w-full px-4 py-3 rounded-xl 
-                bg-[#FBFAFF] 
-                border border-[#E0DEED] 
-                focus:ring-2 focus:ring-[#7B61FF] focus:border-[#7B61FF]
-                outline-none transition
-              "
-              placeholder="•••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="
-              w-full flex items-center justify-center gap-2
-              bg-[#7B61FF] text-white 
-              py-3 rounded-xl 
-              text-base font-medium 
-              shadow-sm hover:bg-[#6A54E6]
-              transition disabled:opacity-50 disabled:cursor-not-allowed
-            "
-          >
-            {loading && <Loader2 size={18} className="animate-spin" />}
-            Entrar
-          </button>
-        </form>
-
-  
-        <div className="text-center mt-10">
-          <p className="text-xs text-gray-500 tracking-wide">
-            <strong>ClearSheet 2.0</strong>
-          </p>
-
-          <p className="text-[11px] text-gray-400">
-            Desenvolvido por <strong>Studio M&D</strong>
-          </p>
-
-          <p className="text-[10px] text-gray-400 mt-2">
-            © {new Date().getFullYear()} ClearSheet • Todos os direitos reservados
-          </p>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
