@@ -1,0 +1,10 @@
+.swal-pastel-popup {
+  border-radius: 1rem !important;
+  border: 1px solid #E6E1F7 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+}
+
+.swal-pastel-title {
+  font-size: 1rem !important;
+  color: #2F2F36 !important;
+}
