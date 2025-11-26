@@ -1,9 +1,21 @@
+/* ============================================================================
+   ROOT WRAPPER
+   ========================================================================== */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+
+  /* Gradiente leve 2026 */
+  background: linear-gradient(180deg, #faf9ff 0%, #f8f7ff 100%);
+  min-height: 100vh;
 }
+
+/* ============================================================================
+   LOGO / ANIMAÇÃO PADRÃO
+   ========================================================================== */
 
 .logo {
   height: 6em;
@@ -11,9 +23,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -39,4 +53,156 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* ============================================================================
+   ANIMAÇÕES GLOBAIS
+   ========================================================================== */
+
+@keyframes pulse-red {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: .45; transform: scale(1.07); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-orange {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.55; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   GLASS EFFECTS (USADOS NOS CARDS DE BANCO)
+   ========================================================================== */
+
+.glass-light {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(134, 125, 167, 0.15);
+  border-radius: 24px;
+}
+
+.glass-heavy {
+  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 24px rgba(134, 125, 167, 0.25);
+  border-radius: 28px;
+}
+
+/* ============================================================================
+   TOOLTIPS GLASS PREMIUM
+   ========================================================================== */
+
+.glass-tooltip {
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  animation: fade-in-up 0.2s ease both;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+  color: #333;
+  z-index: 999;
+}
+
+/* ============================================================================
+   PASTEL SHADOWS — uso geral
+   ========================================================================== */
+
+.shadow-pastel {
+  box-shadow: 0 6px 18px rgba(123, 97, 255, 0.12);
+}
+
+.shadow-soft {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================================
+   BADGES ANIMADOS (ATRASADO, VENCIMENTO, PAGO)
+   ========================================================================== */
+
+.badge-paid {
+  background: #16a34a;
+  color: white;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+}
+
+.badge-overdue {
+  background: #e63946;
+  color: white;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  animation: pulse-red 1.3s infinite ease-in-out;
+  box-shadow: 0 2px 6px rgba(230, 57, 70, 0.35);
+}
+
+.badge-due {
+  background: #e67e22;
+  color: white;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  animation: pulse-orange 1.8s infinite ease-in-out;
+  box-shadow: 0 2px 6px rgba(230, 126, 34, 0.35);
+}
+
+/* ============================================================================
+   SCROLL SUAVE (PAINEL DE TRANSAÇÕES EM CADA CARD DE BANCO)
+   ========================================================================== */
+
+.transactions-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.transactions-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.transactions-scroll::-webkit-scrollbar-thumb {
+  background: rgba(123, 97, 255, 0.3);
+  border-radius: 8px;
+}
+
+.transactions-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(123, 97, 255, 0.5);
+}
+
+/* ============================================================================
+   VARIÁVEIS GERAIS
+   ========================================================================== */
+
+:root {
+  --green: #16a34a;
+  --green-soft: #22c55e;
+  --red: #e63946;
+  --orange: #e67e22;
+  --purple: #7b61ff;
+  --blue: #2563eb;
+
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+
+  --transition-fast: 0.15s;
+  --transition-medium: 0.25s;
 }
