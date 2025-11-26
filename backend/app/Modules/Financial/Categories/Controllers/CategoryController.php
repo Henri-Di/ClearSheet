@@ -75,7 +75,6 @@ class CategoryController extends Controller
         ->orderBy('month', 'desc')
         ->get();
 
-        // montar resposta organizada
         $response = $sheets->map(function($sheet) {
             $income = $sheet->items->where('type', 'income')->sum('value');
             $expense = $sheet->items->where('type', 'expense')->sum('value');
