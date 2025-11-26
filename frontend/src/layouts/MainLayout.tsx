@@ -10,12 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
 import { ClearSheetLogo } from "./ClearSheetLogo";
 import { api } from "../services/api";
 import Swal from "sweetalert2";
-import { ThemeToggle } from "../components/ThemeToggle";
 
+// ========================================================
+// MENU ITEM COMPONENT
+// ========================================================
 interface MenuItemProps {
   to?: string;
   icon: React.ReactNode;
@@ -42,7 +43,6 @@ function MenuItem({
     flex items-center gap-4 p-3 rounded-xl transition-all
     hover:shadow-md hover:-translate-y-0.5
     backdrop-blur-xl border border-transparent
-    text-[#3C3B45] dark:text-gray-100
     ${disabled ? "opacity-50 pointer-events-none" : ""}
     ${color}
   `;
@@ -50,57 +50,57 @@ function MenuItem({
   const activeClass = isActive
     ? `
       bg-gradient-to-r from-[#EDE7FF] to-[#F6F2FF]
-      dark:from-[#2a2342] dark:to-[#1e1a31]
-      border-[#D0C9FF] dark:border-[#3a3455]
-      shadow-md
+      border-[#D0C9FF] shadow-md
     `
     : "";
 
-  return to ? (
-    <Link to={to} className={`${base} ${activeClass}`}>
-      <div
-        className={`
-          flex items-center justify-center rounded-xl p-2
-          ${
-            isActive
-              ? "bg-white dark:bg-[#2c2a38] shadow-sm border border-gray-200 dark:border-dark-border"
-              : "bg-white/70 dark:bg-[#2b2b33]"
-          }
-        `}
-      >
-        {icon}
-      </div>
+  const iconWrapper = (
+    <div
+      className={`
+        flex items-center justify-center rounded-xl p-2
+        ${isActive ? "bg-white shadow-sm border border-gray-200" : "bg-white/70"}
+      `}
+    >
+      {icon}
+    </div>
+  );
+
+  const content = (
+    <>
+      <span className={`${collapsed ? "mx-auto" : ""}`}>{iconWrapper}</span>
 
       {!collapsed && (
-        <span className="font-medium tracking-wide text-[#3C3B45] dark:text-gray-100">
+        <span className="font-medium text-[#3C3B45] tracking-wide">
           {label}
         </span>
       )}
 
       {!collapsed && isActive && (
-        <span className="ml-auto text-xs bg-white dark:bg-[#2f2a41] px-2 py-0.5 rounded-full border border-gray-200 dark:border-dark-border text-gray-500 dark:text-gray-300">
+        <span className="ml-auto text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200 text-gray-500">
           Ativo
         </span>
       )}
-    </Link>
-  ) : (
-    <button
-      onClick={onClick}
-      className={`${base} hover:bg-red-50 dark:hover:bg-[#3a2a2a]`}
-    >
-      <div className="flex items-center justify-center rounded-xl p-2 bg-white/70 dark:bg-[#2b2b33]">
-        {icon}
-      </div>
+    </>
+  );
 
-      {!collapsed && (
-        <span className="font-medium tracking-wide text-[#3C3B45] dark:text-gray-100">
-          {label}
-        </span>
-      )}
+  if (to) {
+    return (
+      <Link to={to} className={`${base} ${activeClass}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={`${base} hover:bg-red-50`}>
+      {content}
     </button>
   );
 }
 
+// ========================================================
+// MAIN LAYOUT
+// ========================================================
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -130,68 +130,80 @@ export default function MainLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FBFAFF] dark:bg-dark-bg text-gray-800 dark:text-gray-100 transition-all">
+    <div className="flex min-h-screen bg-[#FBFAFF]">
+
+      {/* ========================================================
+         SIDEBAR PREMIUM
+      ======================================================== */}
       <aside
         className={`
           bg-gradient-to-br from-[#F8F5FF] to-[#F4F2FA]
-          dark:from-[#1e1b26] dark:to-[#15131c]
-          border-r border-[#E7E5F0] dark:border-dark-border
-          shadow-xl relative p-6 transition-all duration-300 flex flex-col
+          border-r border-[#E7E5F0] shadow-xl relative
+          p-6 transition-all duration-300 flex flex-col
           ${collapsed ? "w-20" : "w-64"}
         `}
       >
+        {/* LOGO + COLLAPSER */}
         <div className="flex items-center justify-between mb-10">
           {!collapsed && <ClearSheetLogo />}
 
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="
-              p-2 rounded-xl bg-white dark:bg-dark-card
-              border border-gray-200 dark:border-dark-border
-              shadow-sm hover:shadow-md transition hover:-translate-y-0.5
-              text-gray-700 dark:text-gray-200
+              p-2 rounded-xl bg-white border border-gray-200 shadow-sm 
+              hover:shadow-md transition hover:-translate-y-0.5
             "
           >
             {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
 
+        {/* NAVIGATION */}
         <nav className="space-y-2">
+
+          {/* DASHBOARD - roxo principal */}
           <MenuItem
-            to="/app/dashboard"
+            to="/dashboard"
             icon={<LayoutDashboard size={22} className="text-[#7B61FF]" />}
-            color="hover:bg-[#ECE8FF] dark:hover:bg-[#322a45]"
+            color="hover:bg-[#ECE8FF]"
             label="Dashboard"
             collapsed={collapsed}
           />
 
+          {/* CATEGORIAS - laranja pastel */}
           <MenuItem
-            to="/app/categories"
+            to="/categories"
             icon={<FolderTree size={22} className="text-[#FFA657]" />}
-            color="hover:bg-[#FFF2E6] dark:hover:bg-[#3c2e1e]"
+            color="hover:bg-[#FFF2E6]"
             label="Categorias"
             collapsed={collapsed}
           />
 
+          {/* PLANILHAS - verde menta */}
           <MenuItem
-            to="/app/sheets"
+            to="/sheets"
             icon={<FileSpreadsheet size={22} className="text-[#00C184]" />}
-            color="hover:bg-[#E6FFF5] dark:hover:bg-[#1c3a31]"
+            color="hover:bg-[#E6FFF5]"
             label="Planilhas"
             collapsed={collapsed}
           />
 
+          {/* TRANSAÇÕES - rosa suave */}
           <MenuItem
-            to="/app/transactions"
+            to="/transactions"
             icon={<Receipt size={22} className="text-[#FF6B9F]" />}
-            color="hover:bg-[#FFE6F0] dark:hover:bg-[#40212f]"
+            color="hover:bg-[#FFE6F0]"
             label="Transações"
             collapsed={collapsed}
           />
+
         </nav>
 
-        <div className="border-t border-gray-300 dark:border-dark-border my-6 opacity-60"></div>
 
+        {/* DIVIDER */}
+        <div className="border-t border-gray-300 my-6 opacity-60"></div>
+
+        {/* LOGOUT */}
         <MenuItem
           onClick={handleLogout}
           disabled={loadingLogout}
@@ -203,19 +215,15 @@ export default function MainLayout() {
             )
           }
           label={loadingLogout ? "Saindo..." : "Sair"}
-          color="hover:bg-red-50 dark:hover:bg-[#4c1f1f]"
+          color="hover:bg-red-50"
           collapsed={collapsed}
         />
       </aside>
 
-      <main className="flex-1 p-10 bg-[#FBFAFF] dark:bg-dark-bg text-gray-900 dark:text-gray-100 transition-all">
-        <header className="flex items-center justify-between mb-8 px-1 text-gray-700 dark:text-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-            ClearSheet
-          </h2>
-          <ThemeToggle />
-        </header>
-
+      {/* ========================================================
+         MAIN CONTENT
+      ======================================================== */}
+      <main className="flex-1 p-10 bg-[#FBFAFF]">
         <div
           className="
             max-w-7xl mx-auto min-h-[85vh]
