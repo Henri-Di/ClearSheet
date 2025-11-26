@@ -71,19 +71,19 @@ function MenuItem({
   const content = (
     <>
       <span className={`${collapsed ? "mx-auto" : ""}`}>{iconWrapper}</span>
-
       {!collapsed && (
         <span className="font-medium text-[#3C3B45] tracking-wide dark:text-gray-200">
           {label}
         </span>
       )}
-
       {!collapsed && isActive && (
-        <span className="
-          ml-auto text-xs bg-white px-2 py-0.5 rounded-full 
-          border border-gray-200 text-gray-500
-          dark:bg-[#2a2538] dark:border-[#3b3347] dark:text-gray-300
-        ">
+        <span
+          className="
+            ml-auto text-xs bg-white px-2 py-0.5 rounded-full 
+            border border-gray-200 text-gray-500
+            dark:bg-[#2a2538] dark:border-[#3b3347] dark:text-gray-300
+          "
+        >
           Ativo
         </span>
       )}
@@ -106,7 +106,7 @@ function MenuItem({
 }
 
 // ========================================================
-// MAIN LAYOUT
+// MAINLAYOUT CORRIGIDO
 // ========================================================
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -137,7 +137,7 @@ export default function MainLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FBFAFF] dark:bg-[#0f0d15] transition-colors">
+    <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-colors">
 
       {/* SIDEBAR */}
       <aside
@@ -150,10 +150,8 @@ export default function MainLayout() {
           ${collapsed ? "w-20" : "w-64"}
         `}
       >
-        {/* LOGO + COLLAPSER */}
         <div className="flex items-center justify-between mb-10">
           {!collapsed && <ClearSheetLogo />}
-
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="
@@ -166,9 +164,7 @@ export default function MainLayout() {
           </button>
         </div>
 
-        {/* NAV */}
         <nav className="space-y-2">
-
           <MenuItem
             to="/app/dashboard"
             icon={<LayoutDashboard size={22} className="text-[#7B61FF] dark:text-[#b7a4ff]" />}
@@ -221,7 +217,7 @@ export default function MainLayout() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-10 bg-[#FBFAFF] dark:bg-[#0f0d15] transition-colors">
+      <main className="flex-1 p-10 bg-light-bg dark:bg-dark-bg transition-colors">
         <div className="w-full flex justify-end mb-6">
           <ThemeToggle />
         </div>
