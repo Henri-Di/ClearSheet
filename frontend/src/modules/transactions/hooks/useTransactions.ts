@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { api } from "../../../services/api";
 
 import type { Transaction } from "../types/Transaction";
@@ -8,6 +8,7 @@ import type { Filters } from "../types/Filters";
 
 import { normalize } from "../utils/normalize";
 import { BankIcons, BankBg, resolveBankKey } from "../utils/bankMaps";
+
 
 function normalizeDate(d: any): string | null {
   if (!d) return null;
@@ -19,6 +20,7 @@ function safeNumber(v: any) {
   const n = Number(v);
   return isNaN(n) ? 0 : n;
 }
+
 
 function groupBanks(transactions: Transaction[], dateStart: string, dateEnd: string) {
   const grouped: Record<string, any> = {};
@@ -53,16 +55,7 @@ function groupBanks(transactions: Transaction[], dateStart: string, dateEnd: str
   }
 
   Object.values(grouped).forEach((b: any) => {
-    if (b.transactions.length === 0) {
-      b.transactions = [
-        { type: "income", value: b.income, date: null },
-        { type: "expense", value: b.expense, date: null },
-      ];
-    }
-  });
-
-  Object.values(grouped).forEach((b: any) => {
-    b.transactions.sort((a: Transaction, b2: Transaction) => {
+    b.transactions.sort((a: any, b2: any) => {
       const A = a.date || "";
       const B = b2.date || "";
       return A.localeCompare(B);
@@ -76,6 +69,7 @@ function groupBanks(transactions: Transaction[], dateStart: string, dateEnd: str
   });
 }
 
+
 export function useTransactions() {
   const [loading, setLoading] = useState(true);
 
@@ -85,19 +79,26 @@ export function useTransactions() {
 
   const [refreshKey, setRefreshKey] = useState(0);
 
+
   const [filters, setFilters] = useState<Filters>({
     search: "",
     dateStart: "",
     dateEnd: "",
     sortField: "date",
     sortDirection: "desc",
+    category: "",
+    bank: "",
+    minValue: "",
+    maxValue: "",
+    type: "",
+    paid: "",
   });
 
-  function refresh() {
+  const refresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
-  }
+  }, []);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -114,6 +115,7 @@ export function useTransactions() {
       setBanks(banksList);
       setCategories(categoriesList);
 
+
       const rawItems: any[] = itemsRes.data?.data || itemsRes.data || [];
       const items: Transaction[] = rawItems.map((raw: any) => ({
         ...raw,
@@ -123,6 +125,7 @@ export function useTransactions() {
         category: categoriesList.find((c: any) => c.id === raw.category_id) || null,
         bank: banksList.find((b: any) => b.id === raw.bank_id) || null,
       }));
+
 
       const rawTrans: any[] = transRes.data?.data || transRes.data || [];
       const trans: Transaction[] = rawTrans.map((raw: any) => ({
@@ -138,31 +141,54 @@ export function useTransactions() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load();
-  }, [refreshKey]);
+  }, [load, refreshKey]);
 
   const filtered = useMemo(() => {
     let list = [...transactions];
-    const term = normalize(filters.search);
 
+
+    const term = normalize(filters.search);
     if (term) {
       list = list.filter((t) => {
-        const fields = [
+        const f = [
           t.description ?? "",
           t.category?.name ?? "",
           t.bank?.name ?? "",
           String(t.value),
           t.type,
           t.origin,
+          t.date ?? "",
+          t.paid_at ?? "",
           t.paid_at ? "pago" : "nao pago",
         ].map((v) => normalize(v));
 
-        return fields.some((f) => f.includes(term));
+        return f.some((x) => x.includes(term));
       });
     }
+
+
+    if (filters.category) {
+      list = list.filter((t) => t.category?.id === Number(filters.category));
+    }
+
+    /* BANCO */
+    if (filters.bank) {
+      list = list.filter((t) => t.bank?.id === Number(filters.bank));
+    }
+
+
+    if (filters.type) {
+      list = list.filter((t) => t.type === filters.type);
+    }
+
+
+    if (filters.paid === "yes") list = list.filter((t) => t.paid_at);
+    if (filters.paid === "no") list = list.filter((t) => !t.paid_at);
+
 
     if (filters.dateStart) {
       list = list.filter((t) => t.date && t.date >= filters.dateStart);
@@ -172,15 +198,42 @@ export function useTransactions() {
       list = list.filter((t) => t.date && t.date <= filters.dateEnd);
     }
 
+
+    if (filters.minValue) {
+      const min = safeNumber(filters.minValue);
+      list = list.filter((t) => safeNumber(t.value) >= min);
+    }
+
+    if (filters.maxValue) {
+      const max = safeNumber(filters.maxValue);
+      list = list.filter((t) => safeNumber(t.value) <= max);
+    }
+
     const dir = filters.sortDirection === "asc" ? 1 : -1;
+
     list.sort((a, b) => {
-      const A = a.date || "";
-      const B = b.date || "";
-      return A < B ? -1 * dir : A > B ? 1 * dir : 0;
+      if (filters.sortField === "date") {
+        return (a.date || "").localeCompare(b.date || "") * dir;
+      }
+
+      if (filters.sortField === "value") {
+        return (safeNumber(a.value) - safeNumber(b.value)) * dir;
+      }
+
+      if (filters.sortField === "category") {
+        return ((a.category?.name || "").localeCompare(b.category?.name || "")) * dir;
+      }
+
+      if (filters.sortField === "bank") {
+        return ((a.bank?.name || "").localeCompare(b.bank?.name || "")) * dir;
+      }
+
+      return 0;
     });
 
     return list;
   }, [transactions, filters]);
+
 
   const entradas = filtered
     .filter((t) => t.type === "income")
@@ -192,9 +245,10 @@ export function useTransactions() {
 
   const saldo = entradas - saidas;
 
-  const groupedBanks = useMemo(() => {
-    return groupBanks(filtered, filters.dateStart, filters.dateEnd);
-  }, [filtered, filters.dateStart, filters.dateEnd]);
+  const groupedBanks = useMemo(
+    () => groupBanks(filtered, filters.dateStart, filters.dateEnd),
+    [filtered, filters.dateStart, filters.dateEnd]
+  );
 
   return {
     loading,
@@ -207,6 +261,6 @@ export function useTransactions() {
     saldo,
     filters,
     setFilters,
-    refresh,  
+    refresh,
   };
 }

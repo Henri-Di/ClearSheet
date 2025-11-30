@@ -17,19 +17,24 @@ export default function SheetViewPage() {
 
     loading,
 
+
     search,
     setSearch,
+    category,
+    setCategory,
+    bank,
+    setBank,
     sortField,
     setSortField,
     direction,
     setDirection,
     sortMenuOpen,
     setSortMenuOpen,
-
     filtered,
+
+
     entradas,
     saidas,
-
     lastUpdatedKey,
     updatingInlineKey,
 
@@ -40,13 +45,16 @@ export default function SheetViewPage() {
 
     showItemModal,
     setShowItemModal,
+
     showSheetModal,
     setShowSheetModal,
 
     itemForm,
     setItemForm,
+
     sheetForm,
     setSheetForm,
+
     modalMode,
     savingItem,
     savingSheet,
@@ -59,7 +67,6 @@ export default function SheetViewPage() {
     deleteSheet,
 
     getTodayIso,
-
     reload,
   } = useSheetView();
 
@@ -83,36 +90,43 @@ export default function SheetViewPage() {
         max-w-7xl
         mx-auto
         space-y-6
-        overflow-x-hidden
+        overflow-x-clip
       "
     >
-      {/* HEADER PRINCIPAL */}
+
       {sheet && (
         <Header
           sheet={sheet}
           search={search}
           setSearch={setSearch}
+          category={category}
+          setCategory={setCategory}
+          bank={bank}
+          setBank={setBank}
+          categories={categories}
+          banks={banks}
           sortMenuOpen={sortMenuOpen}
           setSortMenuOpen={setSortMenuOpen}
           direction={direction}
           sortField={sortField}
           setSortField={setSortField}
           setDirection={setDirection}
-          deletingSheet={false}
           deleteSheet={deleteSheet}
           openEditSheetModal={openEditSheetModal}
           openCreateItemModal={openCreateItemModal}
         />
       )}
 
-      {/* STICKY REFRESH BAR (ELEGANTE ENTERPRISE) */}
-      <div className="
+
+      <div
+        className="
         sticky top-0 z-50
         bg-white/70 dark:bg-[#0f0f15]/70
         backdrop-blur-lg
         border-b border-[#E6E1F7] dark:border-[#1F1C2A]
         py-2 flex justify-center
-      ">
+      "
+      >
         <button
           onClick={() => {
             reload();
@@ -128,13 +142,12 @@ export default function SheetViewPage() {
         >
           <RefreshCcw
             size={16}
-            className={isReloading ? "animate-spin-ease" : ""}
+            className={isReloading ? "animate-spin" : ""}
           />
           Atualizar dados
         </button>
       </div>
 
-      {/* CARD PRINCIPAL */}
       {sheet && (
         <SheetCard
           sheet={sheet}
@@ -144,7 +157,6 @@ export default function SheetViewPage() {
         />
       )}
 
-      {/* LISTA DE ITEMS */}
       <ItemsList
         items={filtered ?? []}
         loading={loading}

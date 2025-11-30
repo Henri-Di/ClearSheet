@@ -3,7 +3,8 @@ import { api } from "../../../services/api";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import { normalize, formatDateToText } from "../utils/normalize";
+import { normalize } from "../utils/normalize";
+import { formatDateToText } from "../utils/normalize";
 import { formatCurrency } from "../utils/currency";
 
 import {
@@ -23,7 +24,6 @@ import type {
   SortField,
 } from "../types/sheet";
 
-
 const EMPTY_FORM: ItemFormState = {
   type: "income",
   value: "",
@@ -42,20 +42,17 @@ function extract<T = any>(res: any): T {
 
 function todayIso(): string {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}-${String(d.getDate()).padStart(2, "0")}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
 function checkOverdue(item: UnifiedItem): boolean {
   if (!item.date) return false;
   if (item.type === "income") return false;
   if (item.paid_at) return false;
-
   return item.date < todayIso();
 }
-
 
 export function useSheetView() {
   const { id } = useParams();
@@ -63,9 +60,8 @@ export function useSheetView() {
 
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [sheetItems, setSheetItems] = useState<UnifiedItem[] | null>(null);
-  const [transactionItems, setTransactionItems] = useState<UnifiedItem[] | null>(
-    null
-  );
+  const [transactionItems, setTransactionItems] =
+    useState<UnifiedItem[] | null>(null);
 
   const [banks, setBanks] = useState<Bank[] | null>(null);
   const [categories, setCategories] = useState<Category[] | null>(null);
@@ -78,6 +74,10 @@ export function useSheetView() {
   const [editingItem, setEditingItem] = useState<UnifiedItem | null>(null);
 
   const [search, setSearch] = useState("");
+
+  const [category, setCategory] = useState<string>("");
+  const [bank, setBank] = useState<string>("");
+
   const [sortField, setSortField] = useState<SortField>("date");
   const [direction, setDirection] = useState<SortDirection>("asc");
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
@@ -92,7 +92,9 @@ export function useSheetView() {
   });
 
   const [lastUpdatedKey, setLastUpdatedKey] = useState<string | null>(null);
-  const [updatingInlineKey, setUpdatingInlineKey] = useState<string | null>(null);
+  const [updatingInlineKey, setUpdatingInlineKey] = useState<string | null>(
+    null
+  );
 
   const [savingItem, setSavingItem] = useState(false);
   const [savingSheet, setSavingSheet] = useState(false);
@@ -101,74 +103,65 @@ export function useSheetView() {
     Record<string, string | null>
   >({});
 
+  const loadData = useCallback(async () => {
+    if (!id) return;
 
-const loadData = useCallback(async () => {
-  if (!id) return;
+    setSheet(null);
+    setSheetItems(null);
+    setTransactionItems(null);
+    setBanks(null);
+    setCategories(null);
+    setLoading(true);
 
-  // LIMPA DADOS ANTIGOS → permite o skeleton aparecer
-  setSheet(null);
-  setSheetItems(null);
-  setTransactionItems(null);
+    try {
+      const [sheetRes, sheetItemsRes, transRes, banksRes, catRes] =
+        await Promise.all([
+          api.get(`/sheets/${id}`),
+          api.get(`/sheets/${id}/items`),
+          api.get(`/transactions?sheet_id=${id}`),
+          api.get(`/banks`),
+          api.get(`/categories`),
+        ]);
 
-  setBanks(null);
-  setCategories(null);
+      const sheetData = extract<any>(sheetRes);
 
-  setLoading(true);
+      setSheet({
+        ...sheetData,
+        initial_balance: Number(sheetData.initial_balance ?? 0),
+      });
 
-  try {
-    const [sheetRes, sheetItemsRes, transRes, banksRes, catRes] =
-      await Promise.all([
-        api.get(`/sheets/${id}`),
-        api.get(`/sheets/${id}/items`),
-        api.get(`/transactions?sheet_id=${id}`),
-        api.get(`/banks`),
-        api.get(`/categories`),
-      ]);
+      const sheetItemsRaw = extract<any[]>(sheetItemsRes) || [];
+      const transRaw = extract<any[]>(transRes) || [];
 
-    const sheetData = extract<any>(sheetRes);
+      setSheetItems(sheetItemsRaw.map(apiItemToUnified));
 
-    setSheet({
-      ...sheetData,
-      initial_balance: Number(sheetData.initial_balance ?? 0),
-    });
+      setTransactionItems(
+        transRaw.map((raw: any) =>
+          apiItemToUnified({
+            ...raw,
+            origin: "transaction",
+            sheet_id: null,
+          })
+        )
+      );
 
-    const sheetItemsRaw = extract<any[]>(sheetItemsRes) || [];
-    const transRaw = extract<any[]>(transRes) || [];
-
-    setSheetItems(sheetItemsRaw.map(apiItemToUnified));
-
-    setTransactionItems(
-      transRaw.map((raw: any) =>
-        apiItemToUnified({
-          ...raw,
-          origin: "transaction",
-          sheet_id: null,
-        })
-      )
-    );
-
-    setBanks(extract<any[]>(banksRes));
-    setCategories(extract<any[]>(catRes));
-
-  } catch {
-    Swal.fire("Erro", "Erro ao carregar dados.", "error");
-  } finally {
-    setLoading(false);
-  }
-}, [id]);
-
+      setBanks(extract<any[]>(banksRes));
+      setCategories(extract<any[]>(catRes));
+    } catch {
+      Swal.fire("Erro", "Erro ao carregar dados.", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-
   const allItems = useMemo(() => {
     if (!sheetItems || !transactionItems) return null;
     return [...sheetItems, ...transactionItems];
   }, [sheetItems, transactionItems]);
-
-
 
   const filtered = useMemo(() => {
     if (!allItems) return null;
@@ -176,20 +169,24 @@ const loadData = useCallback(async () => {
     const term = normalize(search);
     const dir = direction === "asc" ? 1 : -1;
 
-    const list = allItems.filter((i) => {
-      if (!term) return true;
+    let list = allItems.filter((i) => {
+      if (term) {
+        const fields = [
+          normalize(i.description || ""),
+          normalize(i.category?.name || ""),
+          normalize(i.bank?.name || ""),
+          normalize(String(i.value)),
+          normalize(i.type),
+          normalize(i.origin),
+          normalize(i.paid_at ? "pago" : "nao pago"),
+        ];
+        if (!fields.some((f) => f.includes(term))) return false;
+      }
 
-      const fields = [
-        normalize(i.description || ""),
-        normalize(i.category?.name || ""),
-        normalize(i.bank?.name || ""),
-        normalize(String(i.value)),
-        normalize(i.type),
-        normalize(i.origin),
-        normalize(i.paid_at ? "pago" : "nao pago"),
-      ];
+      if (category && String(i.category_id) !== String(category)) return false;
+      if (bank && String(i.bank_id) !== String(bank)) return false;
 
-      return fields.some((f) => f.includes(term));
+      return true;
     });
 
     return list.sort((a, b) => {
@@ -231,8 +228,7 @@ const loadData = useCallback(async () => {
       if (A > B) return 1 * dir;
       return 0;
     });
-  }, [allItems, search, sortField, direction]);
-
+  }, [allItems, search, category, bank, sortField, direction]);
 
   const { entradas, saidas, saldoFinal } = useMemo(() => {
     let totalIn = 0;
@@ -241,7 +237,6 @@ const loadData = useCallback(async () => {
     if (filtered) {
       for (const i of filtered) {
         const val = Number(i.value) || 0;
-
         if (i.type === "income") totalIn += val;
         if (i.type === "expense") totalOut += val;
       }
@@ -257,8 +252,6 @@ const loadData = useCallback(async () => {
     };
   }, [filtered, sheet]);
 
-
-
   function updateLocalItemField(
     item: UnifiedItem,
     field: keyof UnifiedItem,
@@ -273,13 +266,9 @@ const loadData = useCallback(async () => {
           )
         : prev;
 
-    if (item.origin === "sheet") {
-      setSheetItems(apply);
-    } else {
-      setTransactionItems(apply);
-    }
+    if (item.origin === "sheet") setSheetItems(apply);
+    else setTransactionItems(apply);
   }
-
 
   async function updateInline(
     item: UnifiedItem,
@@ -295,7 +284,6 @@ const loadData = useCallback(async () => {
         item.origin === "sheet"
           ? `/sheets/${sheet?.id}/items/${item.id}`
           : `/transactions/${item.id}`;
-
 
       if (field === "paid_at") {
         const newPaid = value || null;
@@ -368,7 +356,6 @@ const loadData = useCallback(async () => {
     }
   }
 
-
   async function deleteInline(item: UnifiedItem) {
     const endpoint =
       item.origin === "sheet"
@@ -393,8 +380,6 @@ const loadData = useCallback(async () => {
     });
   }
 
-
-
   async function deleteSheet() {
     if (!sheet) return;
 
@@ -415,8 +400,6 @@ const loadData = useCallback(async () => {
     Swal.fire("Pronto", "Planilha removida.", "success");
     navigate("/sheets");
   }
-
-
 
   function openCreateItemModal() {
     setModalMode("create");
@@ -455,7 +438,6 @@ const loadData = useCallback(async () => {
 
     setShowSheetModal(true);
   }
-
 
   async function saveItemFromModal() {
     if (!sheet || savingItem) return;
@@ -505,10 +487,7 @@ const loadData = useCallback(async () => {
         setSheetItems((prev) => (prev ? [...prev, unified] : [unified]));
 
         Swal.fire("Adicionado", "Item criado com sucesso.", "success");
-      }
-
-      // EDIÇÃO
-      else if (editingItem) {
+      } else if (editingItem) {
         const endpoint =
           editingItem.origin === "sheet"
             ? `/sheets/${sheet.id}/items/${editingItem.id}`
@@ -568,8 +547,6 @@ const loadData = useCallback(async () => {
     }
   }
 
-
-
   async function saveSheet() {
     if (!sheet || savingSheet) return;
 
@@ -604,10 +581,6 @@ const loadData = useCallback(async () => {
     }
   }
 
-  /* --------------------------------------------------------
-     RETORNO DO HOOK
-  -------------------------------------------------------- */
-
   return {
     sheet,
     sheetItems,
@@ -633,6 +606,11 @@ const loadData = useCallback(async () => {
 
     search,
     setSearch,
+
+    category,
+    setCategory,
+    bank,
+    setBank,
 
     sortField,
     setSortField,
@@ -664,8 +642,6 @@ const loadData = useCallback(async () => {
     saveItemFromModal,
     saveSheet,
 
-    formatDateToText,
-    formatCurrency,
     todayIso,
     checkOverdue,
 
@@ -674,7 +650,10 @@ const loadData = useCallback(async () => {
 
     getCategoryIconByCode,
     getCategoryIconComponent,
-    
+
+    formatDateToText,
+    formatCurrency,
+
     reload: loadData,
   };
 }

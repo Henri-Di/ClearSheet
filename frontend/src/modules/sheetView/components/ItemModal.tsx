@@ -9,7 +9,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { getCategoryIcon } from "../utils/categoryIcons";
 
 import type { Category, Bank, ItemFormState, ItemType } from "../types/sheet";
@@ -38,13 +39,20 @@ export function ItemModal({
   const title = mode === "create" ? "Novo item" : "Editar item";
   const [hoverTip, setHoverTip] = useState<string | null>(null);
 
-  /* --------------------------------------------------------
-      Tooltip com contraste reforçado
-  -------------------------------------------------------- */
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
-        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
+        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-[99999]
         bg-white dark:bg-[#1E1D25]
         text-[#2F2F36] dark:text-white/90
         border border-gray-300 dark:border-white/20
@@ -55,9 +63,6 @@ export function ItemModal({
     </div>
   );
 
-  /* --------------------------------------------------------
-      Label com contraste adequado
-  -------------------------------------------------------- */
   const Label = ({
     label,
     tip,
@@ -83,15 +88,20 @@ export function ItemModal({
     </div>
   );
 
-  /* --------------------------------------------------------
-      Modal
-  -------------------------------------------------------- */
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fadeIn">
+  return createPortal(
+    <div
+      className="
+        fixed inset-0 z-[9999]
+        bg-black/50 dark:bg-black/70 backdrop-blur-sm
+        flex items-center justify-center
+        animate-fadeIn
+      "
+    >
       <div
         className="
-          w-[95%] max-w-lg max-h-[90vh] overflow-y-auto
-          rounded-[32px] p-8 relative animate-slideUp
+          w-[90%] max-w-[520px]
+          max-h-[92vh] overflow-y-auto custom-scroll
+          rounded-[28px] p-6 md:p-8 relative animate-slideUp
 
           bg-gradient-to-br from-white/90 to-white/70
           dark:bg-gradient-to-br dark:from-[#1A1923]/90 dark:to-[#1A1923]/70
@@ -101,8 +111,7 @@ export function ItemModal({
         "
       >
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <div
               className="
@@ -141,20 +150,15 @@ export function ItemModal({
           </button>
         </div>
 
-        {/* FORM */}
-        <div className="space-y-7">
 
-          {/* Tipo */}
+        <div className="space-y-7">
+     
           <div>
-            <Label
-              label="Tipo"
-              tip="Escolha se é entrada ou saída."
-              tipKey="type"
-            />
+            <Label label="Tipo" tip="Escolha entrada ou saída." tipKey="type" />
 
             <div
               className="
-                flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
+                flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
                 bg-white dark:bg-[#2A2733]
                 border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
@@ -189,13 +193,9 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Valor */}
+  
           <div>
-            <Label
-              label="Valor"
-              tip="Informe o valor do item."
-              tipKey="value"
-            />
+            <Label label="Valor" tip="Informe o valor correspondente." tipKey="value" />
 
             <div
               className="
@@ -219,11 +219,11 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Categoria */}
+  
           <div>
             <Label
               label="Categoria"
-              tip="Escolha uma categoria para organizar o item."
+              tip="Escolha uma categoria."
               tipKey="category"
             />
 
@@ -265,11 +265,11 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Banco */}
+
           <div>
             <Label
               label="Banco"
-              tip="Selecione o banco relacionado à movimentação."
+              tip="Selecione o banco relacionado."
               tipKey="bank"
             />
 
@@ -303,17 +303,17 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Data */}
+      
           <div>
             <Label
               label="Data"
-              tip="Data em que a movimentação ocorreu."
+              tip="Quando essa movimentação ocorreu?"
               tipKey="date"
             />
 
             <div
               className="
-                flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
+                flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
                 bg-white dark:bg-[#2A2733]
                 border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
@@ -335,18 +335,18 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Pago em (somente saídas) */}
+      
           {form.type === "expense" && (
             <div>
               <Label
                 label="Pago em"
-                tip="Data em que o pagamento foi efetuado."
+                tip="Quando a despesa foi paga?"
                 tipKey="paid_at"
               />
 
               <div
                 className="
-                  flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
+                  flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
                   bg-white dark:bg-[#2A2733]
                   border border-gray-300 dark:border-white/15
                   focus-within:ring-2 focus-within:ring-[#7B61FF]
@@ -369,17 +369,17 @@ export function ItemModal({
             </div>
           )}
 
-          {/* Descrição */}
+     
           <div>
             <Label
               label="Descrição"
-              tip="Texto opcional para detalhamento da movimentação."
-              tipKey="description"
+              tip="Informações adicionais do item."
+              tipKey="description2"
             />
 
             <textarea
               className="
-                w-full block min-h-[90px] p-3 text-sm rounded-2xl shadow-sm resize-none
+                w-full min-h-[90px] p-3 text-sm rounded-2xl shadow-sm resize-none
                 bg-white dark:bg-[#2A2733]
                 text-[#2F2F36] dark:text-white/90
                 border border-gray-300 dark:border-white/15
@@ -392,7 +392,7 @@ export function ItemModal({
             />
           </div>
 
-          {/* Button */}
+   
           <button
             onClick={onSave}
             disabled={saving}
@@ -417,6 +417,7 @@ export function ItemModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")!
   );
 }

@@ -90,7 +90,6 @@ function MenuItem({
       )}
     </Link>
   ) : (
-    /* BUTTON ITEM */
     <button
       onClick={onClick}
       className={`
@@ -124,19 +123,25 @@ function MenuItem({
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
   const navigate = useNavigate();
 
-  /* Collapse automático mobile */
+  /* PREVENIR FLASH DE LAYOUT — detecta tamanho antes do render */
   useEffect(() => {
-    const resize = () => {
-      if (window.innerWidth < 1024) setCollapsed(true);
+    const applyInitialCollapse = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+      setIsReady(true);
     };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+
+    applyInitialCollapse();
+    window.addEventListener("resize", applyInitialCollapse);
+    return () => window.removeEventListener("resize", applyInitialCollapse);
   }, []);
 
-  /* Logout UX premium */
+  /* Logout */
   async function handleLogout() {
     setLoadingLogout(true);
 
@@ -160,24 +165,25 @@ export default function MainLayout() {
     }
   }
 
+  /* PROTEGER CONTRA FLICKER — layout invisível até decidir o colapso */
+  if (!isReady) {
+    return (
+      <div className="w-full h-screen bg-light-bg dark:bg-dark-bg opacity-0 pointer-events-none" />
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-all duration-300">
 
-      {/* =========================================================================
-          SIDEBAR
-      ========================================================================= */}
+      {/* SIDEBAR */}
       <aside
         className={`
-          fixed lg:relative z-40
-          flex flex-col h-screen 
+          fixed lg:relative z-40 flex flex-col h-screen 
           bg-gradient-to-br from-[#F6F3FF] to-[#EFECF9]
           dark:from-[#14111c] dark:to-[#1b1724]
           border-r border-[#E7E5F0] dark:border-[#2a2538]
           shadow-xl backdrop-blur-2xl
-
-          px-5 py-6
-          transition-all duration-500 ease-out
-
+          px-5 py-6 transition-all duration-500 ease-out
           ${collapsed ? "w-20" : "w-72"}
         `}
       >
@@ -193,7 +199,7 @@ export default function MainLayout() {
             onClick={() => setCollapsed(!collapsed)}
             className="
               p-2 rounded-xl bg-white/70 border border-gray-200 dark:bg-[#1f1b26]
-              dark:border-[#2a2538] shadow-sm hover:shadow-md 
+              dark:border-[#2a2538] shadow-sm hover:shadow-md
               hover:-translate-y-[1px] transition-all
             "
           >
@@ -243,10 +249,7 @@ export default function MainLayout() {
           disabled={loadingLogout}
           icon={
             loadingLogout ? (
-              <Loader2
-                size={18}
-                className="animate-spin-ease text-red-500"
-              />
+              <Loader2 size={18} className="animate-spin-ease text-red-500" />
             ) : (
               <LogOut size={20} className="text-red-500" />
             )
@@ -256,20 +259,19 @@ export default function MainLayout() {
         />
       </aside>
 
-      {/* =========================================================================
-          MAIN CONTENT
-      ========================================================================= */}
+      {/* MAIN CONTENT */}
       <main
-        className="
-          flex-1 ml-20 lg:ml-0 p-6 sm:p-8 transition-all duration-300
-        "
+        className={`
+          flex-1 transition-all duration-300
+          ${!isReady ? "ml-0" : collapsed ? "ml-20" : "ml-72"}
+          lg:ml-0
+          p-6 sm:p-8
+        `}
       >
-        {/* THEME TOGGLE */}
         <div className="w-full flex justify-end mb-6">
           <ThemeToggle />
         </div>
 
-        {/* WRAPPER DO CONTEÚDO */}
         <div
           className="
             max-w-7xl mx-auto min-h-[85vh]

@@ -30,29 +30,33 @@ export function SheetCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.015 }}
       transition={{ duration: 0.22 }}
       className="
-        relative 
+        relative
         bg-white dark:bg-[#14131A]
         border border-[#E6E1F7] dark:border-[#2C2B33]
-        rounded-3xl p-6 shadow-sm
+        rounded-3xl
+        p-4 sm:p-5 md:p-6
+        shadow-sm
         overflow-visible
-        group transition-all
+        group
+        transition-all duration-200
       "
       onMouseEnter={(e) => {
         const el = e.currentTarget;
+        if (window.innerWidth < 768) return; 
         const isDark = document.documentElement.classList.contains("dark");
 
         el.style.borderColor = isDark ? "#4B4A56" : "#C9B8FF";
         el.style.backgroundColor = isDark
-          ? "rgba(255,255,255,0.04)"
-          : "rgba(247,243,255,0.65)";
+          ? "rgba(255,255,255,0.05)"
+          : "rgba(247,243,255,0.75)";
         el.style.boxShadow = isDark
-          ? "0 12px 28px rgba(0,0,0,0.45)"
-          : "0 12px 35px rgba(123, 97, 255, 0.28)";
+          ? "0 16px 32px rgba(0,0,0,0.45)"
+          : "0 16px 38px rgba(123, 97, 255, 0.22)";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget;
@@ -62,19 +66,22 @@ export function SheetCard({
       }}
     >
 
+   
       <div
         className="
-          absolute -top-5 left-1/2 -translate-x-1/2 
-          opacity-0 group-hover:opacity-100 
-          transition z-20 pointer-events-none
+          absolute -top-6 left-1/2 -translate-x-1/2
+          hidden md:block
+          opacity-0 group-hover:opacity-100
+          transition
+          z-20 pointer-events-none
         "
       >
         <div
           className="
-            flex items-center gap-1 text-xs px-3 py-1 
+            flex items-center gap-1 text-xs px-3 py-1
             bg-[#F4F1FF] dark:bg-[#1A1923]
             border border-[#E6E1F7] dark:border-[#34333D]
-            rounded-xl text-[#6C63FF] dark:text-gray-200 
+            rounded-xl text-[#6C63FF] dark:text-gray-200
             shadow-md
           "
         >
@@ -82,34 +89,37 @@ export function SheetCard({
         </div>
       </div>
 
-  
-      <Link
-        to={`/app/sheets/${sheet.id}`}
-        className="block w-full"
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
 
-            {/* Ícone */}
+      <Link to={`/app/sheets/${sheet.id}`} className="block w-full">
+
+ 
+        <div className="flex items-start justify-between">
+
+          <div className="flex items-start gap-4">
+
             <motion.div
               whileHover={{ rotate: -4, scale: 1.06 }}
               transition={{ type: "spring", stiffness: 300 }}
               className="
-                p-3 rounded-2xl border 
+                p-3 sm:p-3.5 md:p-4
+                rounded-2xl border
                 border-[#E6E1F7] dark:border-[#34333D]
-                shadow-sm bg-[#F8F7FF] dark:bg-[#1E1D25]
+                shadow-sm
+                bg-[#F8F7FF] dark:bg-[#1E1D25]
               "
             >
               <FileSpreadsheet
-                size={28}
+                size={26}
                 className="text-[#7B61FF] dark:text-[#A99BFF]"
               />
             </motion.div>
 
+     
             <div>
               <h3
                 className="
-                  text-xl font-semibold 
+                  text-lg sm:text-xl md:text-2xl
+                  font-semibold
                   text-[#2F2F36] dark:text-white/90
                   group-hover:text-[#7B61FF] dark:group-hover:text-[#A99BFF]
                   transition
@@ -118,7 +128,12 @@ export function SheetCard({
                 {sheet.name}
               </h3>
 
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <div className="
+                flex flex-wrap items-center gap-3
+                text-xs sm:text-sm 
+                text-gray-600 dark:text-gray-300
+                mt-1
+              ">
                 <span className="flex items-center gap-1">
                   <Calendar size={14} className="opacity-70" />
                   {sheet.month}/{sheet.year}
@@ -133,21 +148,26 @@ export function SheetCard({
                     title={sheet.description}
                   >
                     <Info size={14} />
-                    <span className="text-xs opacity-70 max-w-[150px] truncate">
+                    <span className="text-xs opacity-70 max-w-[120px] sm:max-w-[220px] truncate">
                       {sheet.description}
                     </span>
                   </span>
                 )}
               </div>
             </div>
+
           </div>
         </div>
       </Link>
 
 
       <div
-        className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6"
-        onClick={(e) => e.stopPropagation()}   // <── impede navegação
+        className="
+          grid grid-cols-2 sm:grid-cols-4
+          gap-3 sm:gap-4 md:gap-5
+          mt-5 sm:mt-6
+        "
+        onClick={(e) => e.stopPropagation()}
       >
         <InfoBox title="Saldo Inicial" value={initial} color="#9A84FF" animated />
         <InfoBox title="Entradas"       value={entradas} color="#28A745" animated />
@@ -155,9 +175,14 @@ export function SheetCard({
         <InfoBox title="Saldo Final"    value={final} color="#9A84FF" animated />
       </div>
 
-     
-      <div className="absolute right-6 top-6 flex items-center gap-3 z-20">
 
+      <div
+        className="
+          absolute top-4 right-4 
+          flex items-center gap-2 sm:gap-3
+          z-20
+        "
+      >
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
@@ -167,15 +192,17 @@ export function SheetCard({
             onEdit();
           }}
           className="
-            px-3 py-1.5 rounded-2xl text-sm
+            px-2.5 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm
             text-[#7B61FF] dark:text-[#A99BFF]
             border border-[#E6E1F7] dark:border-[#34333D]
             hover:bg-[#EFEAFF] dark:hover:bg-white/10
-            transition flex items-center gap-1.5 
-            shadow-sm bg-white dark:bg-[#1D1C22]
+            transition
+            flex items-center gap-1.5
+            shadow-sm
+            bg-white dark:bg-[#1D1C22]
           "
         >
-          <Pencil size={15} /> Editar
+          <Pencil size={14} /> Editar
         </motion.button>
 
         <motion.button
@@ -187,17 +214,20 @@ export function SheetCard({
             onDelete();
           }}
           className="
-            px-3 py-1.5 rounded-2xl text-sm
+            px-2.5 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm
             text-red-600 dark:text-red-400
             border border-red-200 dark:border-red-900
             hover:bg-red-50 dark:hover:bg-red-900/30
-            transition flex items-center gap-1.5
-            shadow-sm bg-white dark:bg-[#1D1C22]
+            transition
+            flex items-center gap-1.5
+            shadow-sm
+            bg-white dark:bg-[#1D1C22]
           "
         >
-          <Trash2 size={15} /> Excluir
+          <Trash2 size={14} /> Excluir
         </motion.button>
       </div>
+
     </motion.div>
   );
 }

@@ -16,6 +16,7 @@ export function GlobalTransactionsDashboard() {
     saidas,
     saldo,
     groupedBanks,
+    banks,        // ← ADICIONADO
     categories,
     loading,
     filters,
@@ -27,7 +28,6 @@ export function GlobalTransactionsDashboard() {
 
   return (
     <div className="p-6 flex flex-col gap-8 text-inherit">
-
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -43,7 +43,12 @@ export function GlobalTransactionsDashboard() {
           Painel Global de Transações
         </h1>
 
-        <FiltersBar filters={filters} setFilters={setFilters} />
+        <FiltersBar
+          filters={filters}
+          setFilters={setFilters}
+          categories={categories}
+          banks={banks}           // ← usa a lista REAL de bancos
+        />
       </motion.div>
 
       <SummaryCards entradas={entradas} saidas={saidas} saldo={saldo} />

@@ -1,23 +1,32 @@
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Search,
   SortAsc,
   SortDesc,
   Pencil,
   Trash2,
   Plus,
+  Search,
   ChevronDown,
 } from "lucide-react";
 
 import { SortMenu } from "./SortMenu";
-import type { Sheet, SortField } from "../types/sheet";
+import type { Sheet, SortField, Category, Bank } from "../types/sheet";
 
 interface Props {
   sheet: Sheet;
 
   search: string;
   setSearch: (v: string) => void;
+
+  category: string;
+  setCategory: (v: string) => void;
+
+  bank: string;
+  setBank: (v: string) => void;
+
+  categories: Category[] | null;
+  banks: Bank[] | null;
 
   sortMenuOpen: boolean;
   setSortMenuOpen: (v: boolean) => void;
@@ -27,24 +36,34 @@ interface Props {
   setSortField: (v: SortField) => void;
   setDirection: (v: "asc" | "desc") => void;
 
-  deletingSheet: boolean;
   deleteSheet: () => void;
-
   openEditSheetModal: () => void;
   openCreateItemModal: () => void;
 }
 
 export function Header({
   sheet,
+
   search,
   setSearch,
+
+  category,
+  setCategory,
+
+  bank,
+  setBank,
+
+  categories,
+  banks,
+
   sortMenuOpen,
   setSortMenuOpen,
+
   direction,
   sortField,
   setSortField,
   setDirection,
-  deletingSheet,
+
   deleteSheet,
   openEditSheetModal,
   openCreateItemModal,
@@ -52,23 +71,20 @@ export function Header({
   return (
     <div
       className="
-        rounded-3xl px-8 py-7 shadow-sm border transition-all
-
+        rounded-3xl px-8 py-7 shadow-sm border
         bg-white border-[#E6E1F7]
-        dark:bg-[#13111B] dark:border-[#1F1C2A] dark:shadow-xl
+        dark:bg-[#13111B] dark:border-[#1F1C2A]
+        space-y-6
       "
     >
-
+      {/* TOPO */}
       <div className="flex items-start gap-4">
-
-  
         <Link
           to="/sheets"
           className="
             flex items-center gap-2 text-[#7B61FF] text-sm font-medium
             hover:underline hover:text-[#6A54E6]
             dark:text-[#B7A4FF] dark:hover:text-[#D0C7FF]
-            transition-all
           "
         >
           <ArrowLeft size={18} /> Voltar
@@ -77,74 +93,123 @@ export function Header({
         <div>
           <h1
             className="
-              text-2xl font-bold tracking-tight leading-tight
+              text-2xl font-bold tracking-tight
               text-[#2F2F36]
               dark:text-[#ECEAF6]
             "
           >
-            {sheet?.name}
+            {sheet.name}
           </h1>
 
-          {sheet?.description && (
-            <p
-              className="
-                text-sm mt-1 leading-snug
-                text-gray-500
-                dark:text-gray-400
-              "
-            >
+          {sheet.description && (
+            <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
               {sheet.description}
             </p>
           )}
         </div>
       </div>
 
-      <div
-        className="
-          mt-8
-          flex flex-col md:flex-row items-stretch md:items-center 
-          gap-4 relative
-        "
-      >
- 
-        <div className="relative group">
+      {/* FILTROS AVANÇADOS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Search */}
+        <div className="relative">
           <Search
-            className="
-              absolute left-3 top-1/2 -translate-y-1/2
-              text-gray-400 group-focus-within:text-[#7B61FF]
-              dark:text-gray-500 dark:group-focus-within:text-[#B7A4FF]
-              transition-colors
-            "
             size={18}
+            className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
           />
-
           <input
-            type="text"
-            placeholder="Buscar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar..."
             className="
-              border rounded-xl pl-10 pr-3 py-2 w-full md:w-64 text-sm
-              bg-white shadow-sm border-[#E6E1F7]
-              placeholder:text-gray-400
-              focus:ring-2 focus:ring-[#7B61FF]/50 focus:border-[#7B61FF]
-              outline-none transition-all
-
-              dark:bg-[#1A1824] dark:border-[#2C2838] dark:text-gray-200
-              dark:placeholder:text-gray-500
-              dark:focus:ring-[#B7A4FF]/40 dark:focus:border-[#B7A4FF]
+              w-full pl-10 pr-3 py-2 rounded-xl
+              bg-[#FBFAFF] dark:bg-[#181720]
+              border border-[#E0DEED] dark:border-[#262433]
+              text-sm
             "
           />
         </div>
 
-        <div className="relative">
+        {/* Categoria */}
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="
+            w-full py-2 px-3 rounded-xl text-sm
+            bg-[#FBFAFF] dark:bg-[#181720]
+            border border-[#E0DEED] dark:border-[#262433]
+          "
+        >
+          <option value="">Categoria</option>
+          {categories?.map((c) => (
+            <option key={c.id} value={String(c.id)}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Banco */}
+        <select
+          value={bank}
+          onChange={(e) => setBank(e.target.value)}
+          className="
+            w-full py-2 px-3 rounded-xl text-sm
+            bg-[#FBFAFF] dark:bg-[#181720]
+            border border-[#E0DEED] dark:border-[#262433]
+          "
+        >
+          <option value="">Banco</option>
+          {banks?.map((b) => (
+            <option key={b.id} value={String(b.id)}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Sort Field + Direction */}
+        <div className="flex gap-2">
+          <select
+            value={sortField}
+            onChange={(e) => setSortField(e.target.value as SortField)}
+            className="
+              w-full py-2 px-3 rounded-xl text-sm
+              bg-[#FBFAFF] dark:bg-[#181720]
+              border border-[#E0DEED] dark:border-[#262433]
+            "
+          >
+            <option value="date">Data</option>
+            <option value="value">Valor</option>
+            <option value="category">Categoria</option>
+            <option value="bank">Banco</option>
+            <option value="type">Tipo</option>
+            <option value="origin">Origem</option>
+          </select>
+
+          <select
+            value={direction}
+            onChange={(e) => setDirection(e.target.value as any)}
+            className="
+              w-28 py-2 px-3 rounded-xl text-sm
+              bg-[#FBFAFF] dark:bg-[#181720]
+              border border-[#E0DEED] dark:border-[#262433]
+            "
+          >
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+          </select>
+        </div>
+      </div>
+
+      {/* AÇÕES */}
+      <div className="flex flex-wrap gap-4">
+
+        {/* Botão Ordenar + SortMenu */}
+        <div className="relative overflow-visible">
           <button
             className="
-              rounded-xl px-4 py-2 flex items-center gap-2 text-sm transition-all
+              rounded-xl px-4 py-2 flex items-center gap-2 text-sm
               bg-white border border-[#E6E1F7] text-gray-700 shadow-sm
-
               hover:bg-[#F5F2FF] hover:border-[#D7D0FF]
-
               dark:bg-[#1A1824] dark:border-[#2C2838] dark:text-gray-200
               dark:hover:bg-[#241F33] dark:hover:border-[#3A334B]
               active:scale-[0.98]
@@ -170,7 +235,7 @@ export function Header({
 
           <SortMenu
             open={sortMenuOpen}
-            toggle={() => setSortMenuOpen(!sortMenuOpen)}
+            toggle={() => setSortMenuOpen(false)}
             sortField={sortField}
             direction={direction}
             applySort={(field) => {
@@ -185,13 +250,13 @@ export function Header({
           />
         </div>
 
+        {/* Editar */}
         <button
           onClick={openEditSheetModal}
           className="
             px-4 py-2 rounded-xl border text-sm flex items-center gap-2
             bg-[#E6F0FF] text-[#2F4A8A] border-[#C3D7FF]
-            hover:bg-[#dce9ff] shadow-sm transition-all active:scale-[0.98]
-
+            hover:bg-[#dce9ff]
             dark:bg-[#1A1824] dark:border-[#2C2838] dark:text-[#C9D8FF]
             dark:hover:bg-[#2A2638]
           "
@@ -200,29 +265,28 @@ export function Header({
           Editar
         </button>
 
+        {/* Excluir */}
         <button
           onClick={deleteSheet}
-          disabled={deletingSheet}
           className="
             px-4 py-2 rounded-xl border text-sm flex items-center gap-2
             bg-red-50 text-red-600 border-red-200
-            hover:bg-red-100 shadow-sm active:scale-[0.98]
-            disabled:opacity-60 disabled:cursor-not-allowed
-
+            hover:bg-red-100
             dark:bg-[#2A1A1F] dark:text-red-300 dark:border-[#3A222A]
             dark:hover:bg-[#3A222A]
           "
         >
-          {deletingSheet ? "Excluindo..." : <><Trash2 size={16}/> Excluir</>}
+          <Trash2 size={16} />
+          Excluir
         </button>
 
+        {/* Novo Item */}
         <button
           onClick={openCreateItemModal}
           className="
             px-6 py-2 rounded-xl text-sm flex items-center gap-2 font-medium
             bg-[#7B61FF] text-white shadow-sm
-            hover:bg-[#6A54E6] transition-all active:scale-[0.98]
-
+            hover:bg-[#6A54E6]
             dark:bg-[#7B61FF] dark:hover:bg-[#9D8AFF]
           "
         >

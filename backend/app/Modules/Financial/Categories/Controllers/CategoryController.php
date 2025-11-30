@@ -18,9 +18,10 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         return ApiResponse::success(
-            $this->service->listForUser($request->user()->id)
+            $this->service->listForUser($request->user()->id)->values()
         );
     }
+
 
     public function store(CreateCategoryRequest $request)
     {

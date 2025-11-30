@@ -7,7 +7,8 @@ import {
   Calendar,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface Props {
   form: {
@@ -32,10 +33,20 @@ export function EditSheetModal({
 }: Props) {
   const [hoverTip, setHoverTip] = useState<string | null>(null);
 
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
-        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
+        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-[99999]
         bg-light-card dark:bg-dark-card
         text-light-text dark:text-dark-text
         border border-light-border dark:border-dark-border
@@ -71,12 +82,21 @@ export function EditSheetModal({
     </div>
   );
 
-  return (
-    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+
+  return createPortal(
+    <div
+      className="
+        fixed inset-0 z-[9999]
+        bg-black/40 dark:bg-black/60 backdrop-blur-sm
+        flex items-center justify-center
+        animate-fadeIn
+      "
+    >
       <div
         className="
-          w-[95%] max-w-xl max-h-[90vh] overflow-y-auto
-          rounded-[32px] p-8 relative animate-slideUp
+          w-[90%] max-w-[520px]
+          max-h-[92vh] overflow-y-auto custom-scroll
+          rounded-[28px] p-6 md:p-8 relative animate-slideUp
 
           bg-gradient-to-br from-light-card/90 to-light-card/70
           dark:bg-gradient-to-br dark:from-dark-card/90 dark:to-dark-card/70
@@ -85,8 +105,8 @@ export function EditSheetModal({
           shadow-xl backdrop-blur-xl
         "
       >
-        {/* HEADER */}
-        <div className="flex items-center justify-between mb-8">
+ 
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <div
               className="
@@ -121,10 +141,9 @@ export function EditSheetModal({
           </button>
         </div>
 
-        {/* FORM */}
+   
         <div className="space-y-7">
-
-          {/* Nome */}
+   
           <div>
             <Label
               text="Nome"
@@ -155,7 +174,7 @@ export function EditSheetModal({
             </div>
           </div>
 
-          {/* Descrição */}
+ 
           <div>
             <Label
               text="Descrição"
@@ -178,9 +197,8 @@ export function EditSheetModal({
             />
           </div>
 
-          {/* Mês / Ano */}
-          <div className="grid grid-cols-2 gap-6">
-
+      
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <Label
                 text="Mês"
@@ -250,7 +268,7 @@ export function EditSheetModal({
             </div>
           </div>
 
-          {/* Saldo Inicial */}
+       
           <div>
             <Label
               text="Saldo Inicial"
@@ -285,7 +303,7 @@ export function EditSheetModal({
             </div>
           </div>
 
-          {/* Botão */}
+
           <button
             onClick={onSave}
             disabled={saving}
@@ -309,6 +327,7 @@ export function EditSheetModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")!
   );
 }

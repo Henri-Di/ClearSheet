@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 import {
   X,
   FileSpreadsheet,
@@ -11,7 +13,6 @@ import {
 
 import { Input } from "./Input";
 import { Textarea } from "./Textarea";
-
 
 interface EditModalProps {
   form: {
@@ -35,11 +36,23 @@ export function EditSheetModal({
   const [loading, setLoading] = useState(false);
   const [hoverTip, setHoverTip] = useState<string | null>(null);
 
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+
   async function handleSave() {
     if (loading) return;
     setLoading(true);
     try {
       await onSave();
+      onClose();
     } finally {
       setLoading(false);
     }
@@ -49,7 +62,7 @@ export function EditSheetModal({
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
-        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
+        absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-[99999]
         bg-white dark:bg-[#1E1D25]
         text-[#2F2F36] dark:text-white/90
         border border-gray-300 dark:border-white/20
@@ -99,31 +112,32 @@ export function EditSheetModal({
     </div>
   );
 
-  return (
+
+  return createPortal(
     <div
       className="
-        fixed inset-0 z-50 flex items-center justify-center
+        fixed inset-0 z-[9999]
+        flex items-center justify-center
         bg-black/45 dark:bg-black/60 backdrop-blur-sm
         animate-fadeIn
       "
     >
       <div
         className="
-          w-[95%] max-w-xl max-h-[90vh] overflow-y-auto p-8 rounded-[32px]
-          relative shadow-xl animate-slideUp
+          w-[90%] max-w-[520px]
+          max-h-[92vh] overflow-y-auto custom-scroll
+          rounded-[28px] p-6 md:p-8 shadow-xl animate-slideUp
 
           bg-gradient-to-br from-white/90 to-white/70
           dark:bg-gradient-to-br dark:from-[#1A1923]/90 dark:to-[#1A1923]/70
 
           border border-gray-200/60 dark:border-white/15
-          backdrop-blur-xl
+          backdrop-blur-xl relative
         "
       >
 
-        <div className="flex items-center justify-between mb-8">
-
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-4">
-
             <div
               className="
                 p-3 rounded-2xl border shadow-sm
@@ -145,7 +159,6 @@ export function EditSheetModal({
                 Atualize as informações e salve as alterações.
               </p>
             </div>
-
           </div>
 
           <button
@@ -161,13 +174,12 @@ export function EditSheetModal({
           </button>
         </div>
 
-        <div className="space-y-7">
 
+        <div className="space-y-7">
 
           <div>
             <Label text="Nome" tipKey="name" />
             <Input
-              label=""
               value={form.name}
               disabled={loading}
               icon={<Info className="text-gray-400 dark:text-gray-300" size={16} />}
@@ -176,11 +188,10 @@ export function EditSheetModal({
             />
           </div>
 
-     
+
           <div>
             <Label text="Descrição" tipKey="description" />
             <Textarea
-              label=""
               value={form.description}
               disabled={loading}
               placeholder="Descrição opcional..."
@@ -189,11 +200,10 @@ export function EditSheetModal({
           </div>
 
   
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <Label text="Mês" tipKey="month" />
               <Input
-                label=""
                 type="number"
                 value={form.month}
                 disabled={loading}
@@ -206,7 +216,6 @@ export function EditSheetModal({
             <div>
               <Label text="Ano" tipKey="year" />
               <Input
-                label=""
                 type="number"
                 value={form.year}
                 disabled={loading}
@@ -217,11 +226,10 @@ export function EditSheetModal({
             </div>
           </div>
 
-         
+
           <div>
             <Label text="Saldo Inicial" tipKey="initial" />
             <Input
-              label=""
               type="number"
               value={form.initial_balance}
               disabled={loading}
@@ -233,7 +241,7 @@ export function EditSheetModal({
             />
           </div>
 
-   
+          {/* BOTÃO */}
           <button
             onClick={handleSave}
             disabled={loading}
@@ -251,6 +259,7 @@ export function EditSheetModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")!
   );
 }
