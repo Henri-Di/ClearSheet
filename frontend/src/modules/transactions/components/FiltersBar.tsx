@@ -54,15 +54,17 @@ export function FiltersBar({
   return (
     <div className="flex flex-col gap-4 w-full">
 
+      {/* Toggle filters button */}
       <div className="flex justify-between items-center">
         <button
           onClick={() => setOpen(!open)}
           className="
             flex items-center gap-2 px-4 py-2 rounded-2xl text-sm
-            bg-[#EFEAFF] dark:bg-white/10
+            bg-[#EFEAFF]/90 dark:bg-white/10
             text-[#6B54FF] dark:text-[#CFC4FF]
             border border-[#E6E1F7] dark:border-white/10
-            shadow-sm hover:shadow-md transition-all
+            shadow-sm hover:shadow-md active:scale-[0.97]
+            transition-all
           "
         >
           <SlidersHorizontal size={16} />
@@ -81,7 +83,7 @@ export function FiltersBar({
             className="flex flex-col gap-4"
           >
 
-    
+            {/* Search */}
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -106,7 +108,7 @@ export function FiltersBar({
               />
             </motion.div>
 
-
+            {/* Date Filters */}
             <div className="flex gap-3 flex-wrap w-full">
               <FilterBox>
                 <FilterLabel icon={<Calendar size={14} />}>De</FilterLabel>
@@ -129,9 +131,9 @@ export function FiltersBar({
               </FilterBox>
             </div>
 
-
-        
+            {/* Category / Bank / Type / Paid */}
             <div className="flex gap-3 flex-wrap w-full">
+              
               <FilterBox>
                 <FilterLabel>Categoria</FilterLabel>
                 <select
@@ -187,8 +189,7 @@ export function FiltersBar({
               </FilterBox>
             </div>
 
-
-     
+            {/* Values / Sorting */}
             <div className="flex gap-3 flex-wrap w-full">
 
               <FilterBox>
@@ -233,13 +234,11 @@ export function FiltersBar({
                     p-2 rounded-xl border border-[#E6E1F7]
                     dark:border-white/10 bg-white dark:bg-white/5
                     hover:bg-[#F0EDFF] dark:hover:bg-white/10 transition
-                    flex items-center justify-center text-sm
+                    flex items-center gap-2 text-sm text-[#7B61FF]
+                    dark:text-[#B6A8FF]
                   "
                 >
-                  <ArrowUpDown
-                    size={16}
-                    className="text-[#7B61FF] dark:text-[#B6A8FF]"
-                  />
+                  <ArrowUpDown size={16} />
                   {filters.sortDirection === "asc"
                     ? " Crescente"
                     : " Decrescente"}
@@ -247,7 +246,7 @@ export function FiltersBar({
               </FilterBox>
             </div>
 
-
+            {/* Clear filters button */}
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
@@ -272,8 +271,7 @@ export function FiltersBar({
   );
 }
 
-
-
+/* Filter container */
 function FilterBox({ children, delay = 0 }: any) {
   return (
     <motion.div
@@ -281,7 +279,7 @@ function FilterBox({ children, delay = 0 }: any) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay }}
       className="
-        p-3 rounded-2xl min-w-[140px] flex-1
+        p-3 rounded-2xl min-w-[150px] flex-1
         border border-[#E6E1F7] dark:border-white/10
         bg-white dark:bg-white/5 shadow-sm hover:shadow-md
         transition-all
@@ -292,9 +290,13 @@ function FilterBox({ children, delay = 0 }: any) {
   );
 }
 
+/* Label */
 function FilterLabel({ children, icon }: any) {
   return (
-    <label className="text-xs text-gray-600 dark:text-gray-300 mb-1 flex items-center gap-1">
+    <label className="
+      text-xs text-gray-600 dark:text-gray-300 mb-1 
+      flex items-center gap-1
+    ">
       {icon} {children}
     </label>
   );
