@@ -1,14 +1,9 @@
-/* ----------------------------------------------------------
-   TAILWIND
----------------------------------------------------------- */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
-/* ----------------------------------------------------------
-    DARK MODE BASE
----------------------------------------------------------- */
 html.dark {
   color-scheme: dark;
 }
@@ -17,55 +12,47 @@ html.dark body {
   background-color: #0f0f15;
 }
 
-
-/* ----------------------------------------------------------
-    ROOT LAYOUT
----------------------------------------------------------- */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; 
+  display: flex;
+  flex-direction: column;
 }
 
 
-/* ----------------------------------------------------------
-    ANIMAÇÕES BÁSICAS
----------------------------------------------------------- */
 @keyframes logo-spin {
   from { transform: rotate(0); }
   to   { transform: rotate(360deg); }
 }
 
 @keyframes pulse-red {
-  0%   { opacity: 1; transform: scale(1); }
-  50%  { opacity: 0.45; transform: scale(1.07); }
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.07); }
   100% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes pulse-orange {
-  0%   { opacity: 1; transform: scale(1); }
-  50%  { opacity: 0.55; transform: scale(1.04); }
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.04); }
   100% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes fade-in-up {
-  0%   { opacity: 0; transform: translateY(6px); }
+  0% { opacity: 0; transform: translateY(6px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
 
-/* ----------------------------------------------------------
-    GLASS LIGHT
----------------------------------------------------------- */
 .glass-light {
   backdrop-filter: blur(12px);
   background: rgba(255,255,255,0.45);
   border: 1px solid rgba(255,255,255,0.35);
   box-shadow: 0 4px 12px rgba(134,125,167,0.15);
   border-radius: var(--radius-xl);
-  transition: background var(--transition-medium), border var(--transition-medium);
+  transition: background .25s, border .25s;
 }
 
 html.dark .glass-light {
@@ -85,9 +72,6 @@ html.dark .glass-light {
 }
 
 
-/* ----------------------------------------------------------
-    GLASS HEAVY
----------------------------------------------------------- */
 .glass-heavy {
   backdrop-filter: blur(20px);
   background: rgba(255,255,255,0.30);
@@ -103,15 +87,10 @@ html.dark .glass-heavy {
 }
 
 @media (max-width: 640px) {
-  .glass-heavy {
-    backdrop-filter: blur(12px);
-  }
+  .glass-heavy { backdrop-filter: blur(12px); }
 }
 
 
-/* ----------------------------------------------------------
-    GLASS TOOLTIP
----------------------------------------------------------- */
 .glass-tooltip {
   backdrop-filter: blur(14px);
   background: rgba(255,255,255,0.45);
@@ -120,7 +99,7 @@ html.dark .glass-heavy {
   border-radius: 14px;
   font-size: 12px;
   font-weight: 500;
-  animation: fade-in-up 0.2s ease both;
+  animation: fade-in-up .2s ease both;
   color: #333;
   white-space: nowrap;
   z-index: 999;
@@ -148,13 +127,9 @@ html.dark .glass-tooltip {
 }
 
 
-/* ----------------------------------------------------------
-    SHADOWS
----------------------------------------------------------- */
 .shadow-pastel {
   box-shadow: 0 6px 18px rgba(123,97,255,0.12);
 }
-
 html.dark .shadow-pastel {
   box-shadow: 0 8px 28px rgba(0,0,0,0.45);
 }
@@ -162,15 +137,11 @@ html.dark .shadow-pastel {
 .shadow-soft {
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
-
 html.dark .shadow-soft {
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
 
 
-/* ----------------------------------------------------------
-    BADGES
----------------------------------------------------------- */
 .badge-paid {
   background: var(--green);
   color: white;
@@ -203,13 +174,7 @@ html.dark .shadow-soft {
   animation: pulse-orange 1.8s infinite ease-in-out;
 }
 
-
-/* ----------------------------------------------------------
-    CUSTOM SCROLL — GLOBAL (Custom-Scroll)
----------------------------------------------------------- */
-.custom-scroll::-webkit-scrollbar {
-  width: 10px;
-}
+.custom-scroll::-webkit-scrollbar { width: 10px; }
 
 .custom-scroll::-webkit-scrollbar-track {
   background: rgba(0,0,0,0.05);
@@ -220,7 +185,6 @@ html.dark .shadow-soft {
   background: rgba(123,97,255,0.35);
   border-radius: 8px;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(123,97,255,0.55);
 }
@@ -228,71 +192,77 @@ html.dark .shadow-soft {
 html.dark .custom-scroll::-webkit-scrollbar-track {
   background: rgba(255,255,255,0.06);
 }
-
 html.dark .custom-scroll::-webkit-scrollbar-thumb {
   background: rgba(123,97,255,0.45);
 }
 
 
-/* ----------------------------------------------------------
-    CUSTOM SCROLL — Transactions (vertical)
----------------------------------------------------------- */
-.transactions-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.transactions-scroll::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.05);
-  border-radius: 8px;
-}
-
-.transactions-scroll::-webkit-scrollbar-thumb {
-  background: rgba(123,97,255,0.3);
-  border-radius: 8px;
-}
-
-.transactions-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(123,97,255,0.5);
-}
-
-html.dark .transactions-scroll::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.05);
-}
-
-html.dark .transactions-scroll::-webkit-scrollbar-thumb {
-  background: rgba(123,97,255,0.45);
-}
-
 @media (max-width: 480px) {
-  .transactions-scroll::-webkit-scrollbar {
-    width: 6px;
+  body { font-size: 0.92rem; }
+  h1, h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; }
+}
+
+
+@media (max-width: 640px) {
+  .modal-content,
+  .glass-heavy,
+  .glass-light {
+    padding: 1.25rem !important;
+    border-radius: 22px !important;
+  }
+}
+@media (max-width: 480px) {
+  .modal-content,
+  .glass-heavy,
+  .glass-light {
+    padding: 1rem !important;
+    border-radius: 20px !important;
   }
 }
 
 
-/* ----------------------------------------------------------
-    SELECT — Correção de contraste universal
----------------------------------------------------------- */
-select option {
-  background-color: #ffffff;
-  color: #1a1a1a;
-}
-
-.dark select option {
-  background-color: #2A2733;
-  color: #f5f5f5;
-}
-
-select option:hover,
-.dark select option:hover {
-  background-color: #7B61FF !important;
-  color: white !important;
+@media (max-width: 480px) {
+  input,
+  textarea,
+  select {
+    font-size: 0.9rem !important;
+    padding: 0.55rem 0.8rem !important;
+  }
+  .rounded-2xl { border-radius: 18px !important; }
 }
 
 
-/* ----------------------------------------------------------
-    ROOT VARIABLES — UI Pastel 2026
----------------------------------------------------------- */
+@media (max-width: 480px) {
+  .glass-tooltip {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .hover-scale,
+  .card,
+  .sheet-card,
+  .info-card {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .info-box {
+    padding: 1.25rem !important;
+  }
+  .info-box h3 {
+    font-size: 0.85rem !important;
+  }
+  .info-box p {
+    font-size: 1.8rem !important;
+  }
+}
+
+
 :root {
   --green: #16a34a;
   --green-soft: #22c55e;
@@ -306,92 +276,4 @@ select option:hover,
 
   --transition-fast: 0.15s;
   --transition-medium: 0.25s;
-}
-
-
-/* ----------------------------------------------------------
-    RESPONSIVIDADE UI PASTEL 2026
----------------------------------------------------------- */
-
-/* Tipografia geral */
-@media (max-width: 480px) {
-  body {
-    font-size: 0.92rem;
-  }
-  h1, h2 {
-    font-size: 1.4rem;
-  }
-  h3 {
-    font-size: 1.15rem;
-  }
-}
-
-/* Modais */
-@media (max-width: 640px) {
-  .modal-content,
-  .glass-heavy,
-  .glass-light {
-    padding: 1.25rem !important;
-    border-radius: 22px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .modal-content,
-  .glass-heavy,
-  .glass-light {
-    padding: 1rem !important;
-    border-radius: 20px !important;
-  }
-}
-
-/* Inputs */
-@media (max-width: 480px) {
-  input,
-  textarea,
-  select {
-    font-size: 0.9rem !important;
-    padding: 0.55rem 0.8rem !important;
-  }
-  .rounded-2xl {
-    border-radius: 18px !important;
-  }
-}
-
-/* Tooltip */
-@media (max-width: 480px) {
-  .glass-tooltip {
-    font-size: 11px !important;
-    padding: 4px 10px !important;
-  }
-}
-
-/* Scroll refinado mobile */
-@media (max-width: 480px) {
-  .transactions-scroll::-webkit-scrollbar {
-    width: 5px !important;
-  }
-}
-
-/* Hover removido em mobile */
-@media (max-width: 640px) {
-  .hover-scale,
-  .card,
-  .sheet-card,
-  .info-card {
-    transform: none !important;
-  }
-}
-
-/* InfoBox */
-@media (max-width: 480px) {
-  .info-box {
-    padding: 1.25rem !important;
-  }
-  .info-box h3 {
-    font-size: 0.85rem !important;
-  }
-  .info-box p {
-    font-size: 1.8rem !important;
-  }
 }

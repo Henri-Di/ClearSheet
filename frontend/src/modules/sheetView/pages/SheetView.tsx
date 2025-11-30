@@ -2,7 +2,7 @@ import { useSheetView } from "../hooks/useSheetView";
 
 import { Header } from "../components/Header";
 import { SheetCard } from "../components/SheetCard";
-import ItemsList from "../components/ItemList"; 
+import ItemsList from "../components/ItemList";
 import { ItemModal } from "../components/ItemModal";
 import { EditSheetModal } from "../components/EditSheetModal";
 
@@ -13,7 +13,6 @@ export default function SheetViewPage() {
     categories,
 
     loading,
-
 
     search,
     setSearch,
@@ -28,16 +27,13 @@ export default function SheetViewPage() {
     entradas,
     saidas,
 
- 
     lastUpdatedKey,
     updatingInlineKey,
 
- 
     updateLocalItemField,
     updateInline,
     deleteInline,
     openEditItemModal,
-
 
     showItemModal,
     setShowItemModal,
@@ -59,7 +55,6 @@ export default function SheetViewPage() {
     saveSheet,
     deleteSheet,
 
-
     getTodayIso,
   } = useSheetView();
 
@@ -73,10 +68,17 @@ export default function SheetViewPage() {
     );
   }
 
-
   return (
-    <div className="space-y-6">
-
+    <div
+      className="
+        w-full
+        px-4 sm:px-6 lg:px-10
+        max-w-7xl
+        mx-auto
+        space-y-6
+        overflow-x-hidden
+      "
+    >
       {sheet && (
         <Header
           sheet={sheet}
@@ -100,7 +102,7 @@ export default function SheetViewPage() {
           sheet={sheet}
           entradas={entradas}
           saidas={saidas}
-          items={filtered ?? []} 
+          items={filtered ?? []}
         />
       )}
 

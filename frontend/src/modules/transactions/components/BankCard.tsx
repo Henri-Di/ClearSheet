@@ -11,7 +11,6 @@ export function BankCard({ bank }: any) {
   const [hoverTip, setHoverTip] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
-
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -36,12 +35,14 @@ export function BankCard({ bank }: any) {
         style={{ background: bgFinal }}
         className="
           rounded-3xl p-6 relative cursor-default select-none
-          border border-white/40
-          shadow-xl backdrop-blur-xl 
+          border border-black/5 dark:border-white/10
+          shadow-lg dark:shadow-black/60
+          backdrop-blur-xl 
           transition-all w-full max-w-md
         "
       >
 
+        {/* Tooltip */}
         <div
           className="absolute top-3 right-3"
           onMouseEnter={() => setHoverTip(true)}
@@ -49,7 +50,7 @@ export function BankCard({ bank }: any) {
         >
           <HelpCircle
             size={18}
-            className="text-black/60 dark:text-white/60 cursor-pointer"
+            className="text-slate-700 dark:text-white/60 cursor-pointer"
           />
 
           {hoverTip && (
@@ -70,24 +71,32 @@ export function BankCard({ bank }: any) {
           )}
         </div>
 
-  
+        {/* Header */}
         <div className="flex justify-between items-center">
-          <h3 className="text-md font-semibold text-white">
+          <h3 className="text-md font-semibold text-slate-900 dark:text-white">
             {bank.title}
           </h3>
 
           <motion.div whileHover={{ scale: 1.12 }}>
-            {bank.icon}
+            <div
+              className="
+                w-10 h-10 rounded-xl flex items-center justify-center
+                bg-white/60 dark:bg-white/10 
+                shadow-md
+              "
+            >
+              {bank.icon}
+            </div>
           </motion.div>
         </div>
 
-    
+        {/* Linhas */}
         <div className="mt-4 space-y-2">
           <Line label="Entradas" v={bank.income} color="green" />
           <Line label="Saídas" v={bank.expense} color="red" />
 
-          <div className="flex justify-between border-t pt-2 border-white/20">
-            <span className="font-semibold text-white">
+          <div className="flex justify-between border-t pt-2 border-black/10 dark:border-white/10">
+            <span className="font-semibold text-slate-900 dark:text-white">
               Saldo
             </span>
             <span
@@ -95,10 +104,10 @@ export function BankCard({ bank }: any) {
                 font-bold
                 ${
                   saldo > 0
-                    ? "text-green-400"
+                    ? "text-green-700 dark:text-green-400"
                     : saldo < 0
-                    ? "text-red-400"
-                    : "text-gray-300"
+                    ? "text-red-700 dark:text-red-400"
+                    : "text-slate-700 dark:text-gray-300"
                 }
               `}
             >
@@ -107,51 +116,49 @@ export function BankCard({ bank }: any) {
           </div>
         </div>
 
-  
+        {/* Sparkline */}
         <div className="mt-5">
           <SparklineDual transactions={bank.transactions} />
         </div>
 
-
+        {/* Botão */}
         <button
           onClick={() => setOpenModal(true)}
           className="
             mt-6 flex items-center gap-2 px-4 py-2 rounded-xl
-            bg-white/10
-            text-xs font-semibold 
-            hover:bg-white/20
-            text-white
-            backdrop-blur-sm 
-            shadow-md
-            transition-all
+            text-xs font-semibold
+            bg-slate-900/5 hover:bg-slate-900/10 text-slate-900
+            dark:bg-white/10 dark:hover:bg-white/20 dark:text-white
+            backdrop-blur-sm shadow-md transition-all
           "
         >
           <BarChart3 size={15} /> Visão Analítica
         </button>
 
-      
+        {/* Barra de saldo */}
         <div className="mt-6">
           <div
             className={`
               h-[10px] w-full rounded-full bg-gradient-to-r
               ${
                 saldo > 0
-                  ? "from-green-400 to-green-600"
+                  ? "from-green-300 to-green-500 dark:from-green-400 dark:to-green-600"
                   : saldo < 0
-                  ? "from-red-400 to-red-600"
-                  : "from-gray-300 to-gray-400"
+                  ? "from-red-300 to-red-500 dark:from-red-400 dark:to-red-600"
+                  : "from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-500"
               }
             `}
             style={{
               boxShadow:
                 saldo > 0
-                  ? "0 0 12px rgba(16,185,129,0.65)"
+                  ? "0 0 10px rgba(16,185,129,0.35)"
                   : saldo < 0
-                  ? "0 0 12px rgba(239,68,68,0.65)"
-                  : "0 0 8px rgba(120,120,120,0.45)",
+                  ? "0 0 10px rgba(239,68,68,0.35)"
+                  : "0 0 8px rgba(120,120,120,0.25)",
             }}
           />
         </div>
+
       </motion.div>
 
       {openModal && (
@@ -162,15 +169,22 @@ export function BankCard({ bank }: any) {
 }
 
 
-
+/* Linha padrão com contraste corrigido */
 function Line({ label, v, color }: any) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-200">{label}</span>
+      <span className="text-sm text-slate-600 dark:text-gray-200">
+        {label}
+      </span>
+
       <span
         className={`
           text-sm font-semibold
-          ${color === "green" ? "text-green-400" : "text-red-400"}
+          ${
+            color === "green"
+              ? "text-green-700 dark:text-green-400"
+              : "text-red-700 dark:text-red-400"
+          }
         `}
       >
         {formatCurrency(v)}
