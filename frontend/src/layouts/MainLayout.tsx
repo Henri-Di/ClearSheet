@@ -10,11 +10,15 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+
 import { ClearSheetLogo } from "./ClearSheetLogo";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { api } from "../services/api";
 import Swal from "sweetalert2";
-import { ThemeToggle } from "../components/ThemeToggle";
 
+/* ============================================================================
+   MENU ITEM COMPONENT
+============================================================================ */
 interface MenuItemProps {
   to?: string;
   icon: React.ReactNode;
@@ -37,29 +41,33 @@ function MenuItem({
   const location = useLocation();
   const isActive = to && location.pathname.startsWith(to);
 
+  const baseStyle = `
+    group flex items-center gap-4 px-3 py-2.5 rounded-2xl
+    transition-all duration-300 cursor-pointer backdrop-blur-xl
+    border border-transparent
+    hover:-translate-y-[2px] hover:shadow-md
+    ${disabled ? "opacity-50 pointer-events-none" : ""}
+  `;
+
   return to ? (
     <Link
       to={to}
       className={`
-        group flex items-center gap-4 px-3 py-2.5 rounded-2xl
-        transition-all duration-300 cursor-pointer
-        border border-transparent
-        backdrop-blur-xl
-
-        hover:-translate-y-0.5 hover:shadow-md
+        ${baseStyle}
         ${color}
-        ${disabled ? "opacity-50 pointer-events-none" : ""}
-        ${isActive
-          ? `
-            bg-gradient-to-r from-[#ECE8FF] to-[#F8F6FF]
-            dark:from-[#231d31] dark:to-[#2f2a40]
-            border-[#D4CCFF] dark:border-[#3b3347]
-            shadow-lg
-          `
-          : `
-            bg-white/70 dark:bg-[#1d1a26]/60
-            border-white/20 dark:border-black/20
-          `}
+        ${
+          isActive
+            ? `
+              bg-gradient-to-r from-[#ECE8FF] to-[#F8F6FF]
+              dark:from-[#231d31] dark:to-[#2f2a40]
+              border-[#D4CCFF] dark:border-[#3b3347]
+              shadow-lg scale-[1.02]
+            `
+            : `
+              bg-white/60 dark:bg-[#1d1a26]/60
+              border-white/20 dark:border-black/20
+            `
+        }
       `}
     >
       <div
@@ -68,7 +76,6 @@ function MenuItem({
           transition-all duration-300
           bg-white/70 dark:bg-[#1c1925]
           border border-white/40 dark:border-[#2d263a]
-
           group-hover:scale-110
           ${isActive ? "scale-110 shadow-md" : ""}
         `}
@@ -77,18 +84,17 @@ function MenuItem({
       </div>
 
       {!collapsed && (
-        <span className="font-medium text-[#3C3B45] dark:text-gray-200">
+        <span className="font-medium text-[#3C3B45] dark:text-gray-200 transition-all">
           {label}
         </span>
       )}
     </Link>
   ) : (
+    /* BUTTON ITEM */
     <button
       onClick={onClick}
       className={`
-        group flex items-center gap-4 px-3 py-2.5 rounded-2xl
-        transition-all duration-300 cursor-pointer
-        ${disabled ? "opacity-50 pointer-events-none" : ""}
+        ${baseStyle}
         hover:bg-red-50 dark:hover:bg-[#3a1f25]
       `}
     >
@@ -97,7 +103,7 @@ function MenuItem({
           p-2 rounded-xl flex items-center justify-center
           bg-white/60 dark:bg-[#1c1925]
           border border-white/20 dark:border-[#2d263a]
-          group-hover:scale-110
+          group-hover:scale-110 transition-all
         `}
       >
         {icon}
@@ -112,27 +118,31 @@ function MenuItem({
   );
 }
 
-
+/* ============================================================================
+   MAIN LAYOUT
+============================================================================ */
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const navigate = useNavigate();
 
+  /* Collapse automático mobile */
   useEffect(() => {
-    const handleResize = () => {
+    const resize = () => {
       if (window.innerWidth < 1024) setCollapsed(true);
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
   }, []);
 
+  /* Logout UX premium */
   async function handleLogout() {
     setLoadingLogout(true);
 
     Swal.fire({
-      title: "Saindo...",
-      text: "Aguarde enquanto finalizamos sua sessão.",
+      title: "Saindo…",
+      text: "Aguarde um instante.",
       allowOutsideClick: false,
       allowEscapeKey: false,
       didOpen: () => Swal.showLoading(),
@@ -144,24 +154,26 @@ export default function MainLayout() {
       Swal.close();
       navigate("/login");
     } catch {
-      Swal.fire("Erro", "Não foi possível finalizar o logout.", "error");
+      Swal.fire("Erro", "Não foi possível sair.", "error");
     } finally {
       setLoadingLogout(false);
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-colors">
+    <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-all duration-300">
 
-
+      {/* =========================================================================
+          SIDEBAR
+      ========================================================================= */}
       <aside
         className={`
           fixed lg:relative z-40
-          h-full flex flex-col
+          flex flex-col h-screen 
           bg-gradient-to-br from-[#F6F3FF] to-[#EFECF9]
           dark:from-[#14111c] dark:to-[#1b1724]
           border-r border-[#E7E5F0] dark:border-[#2a2538]
-          backdrop-blur-2xl shadow-2xl
+          shadow-xl backdrop-blur-2xl
 
           px-5 py-6
           transition-all duration-500 ease-out
@@ -169,22 +181,27 @@ export default function MainLayout() {
           ${collapsed ? "w-20" : "w-72"}
         `}
       >
-    
+        {/* LOGO + COLLAPSE */}
         <div className="flex items-center justify-between mb-10">
-          {!collapsed && <ClearSheetLogo />}
+          {!collapsed && (
+            <div className="animate-fade-in">
+              <ClearSheetLogo />
+            </div>
+          )}
+
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="
-              p-2 rounded-xl bg-white/70 border border-gray-200 shadow-sm
-              hover:shadow-md hover:-translate-y-0.5
-              transition dark:bg-[#1f1b26] dark:border-[#2a2538]
+              p-2 rounded-xl bg-white/70 border border-gray-200 dark:bg-[#1f1b26]
+              dark:border-[#2a2538] shadow-sm hover:shadow-md 
+              hover:-translate-y-[1px] transition-all
             "
           >
             {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
 
-
+        {/* MENU */}
         <nav className="space-y-2">
           <MenuItem
             to="/app/dashboard"
@@ -219,41 +236,47 @@ export default function MainLayout() {
           />
         </nav>
 
-        <div className="border-t border-gray-300 dark:border-[#2a2538] my-6 opacity-50" />
+        <div className="border-t border-gray-300 dark:border-[#2a2538] my-6 opacity-30" />
 
         <MenuItem
           onClick={handleLogout}
           disabled={loadingLogout}
           icon={
             loadingLogout ? (
-              <Loader2 size={18} className="animate-spin text-red-500" />
+              <Loader2
+                size={18}
+                className="animate-spin-ease text-red-500"
+              />
             ) : (
               <LogOut size={20} className="text-red-500" />
             )
           }
           label={loadingLogout ? "Saindo..." : "Sair"}
-          color="hover:bg-red-50 dark:hover:bg-[#3a1f25]"
           collapsed={collapsed}
         />
       </aside>
 
-
-      <main className="flex-1 lg:ml-0 ml-20 p-8 transition-all duration-300">
-
-        {/* THEME BUTTON */}
+      {/* =========================================================================
+          MAIN CONTENT
+      ========================================================================= */}
+      <main
+        className="
+          flex-1 ml-20 lg:ml-0 p-6 sm:p-8 transition-all duration-300
+        "
+      >
+        {/* THEME TOGGLE */}
         <div className="w-full flex justify-end mb-6">
           <ThemeToggle />
         </div>
 
-    
+        {/* WRAPPER DO CONTEÚDO */}
         <div
           className="
             max-w-7xl mx-auto min-h-[85vh]
             bg-white/90 dark:bg-[#1a1625]/90
             border border-[#ECEBF5] dark:border-[#2a2538]
-            rounded-3xl shadow-xl p-10
-            backdrop-blur-xl
-            transition-all
+            rounded-3xl shadow-xl p-6 sm:p-10
+            backdrop-blur-xl animate-fade-in
           "
         >
           <Outlet />

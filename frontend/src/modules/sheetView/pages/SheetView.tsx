@@ -6,6 +6,9 @@ import ItemsList from "../components/ItemList";
 import { ItemModal } from "../components/ItemModal";
 import { EditSheetModal } from "../components/EditSheetModal";
 
+import { RefreshCcw } from "lucide-react";
+import { useState } from "react";
+
 export default function SheetViewPage() {
   const {
     sheet,
@@ -56,6 +59,8 @@ export default function SheetViewPage() {
     deleteSheet,
 
     getTodayIso,
+
+    reload,
   } = useSheetView();
 
   if (!loading && !sheet) {
@@ -68,6 +73,8 @@ export default function SheetViewPage() {
     );
   }
 
+  const [isReloading, setIsReloading] = useState(false);
+
   return (
     <div
       className="
@@ -79,6 +86,7 @@ export default function SheetViewPage() {
         overflow-x-hidden
       "
     >
+      {/* HEADER PRINCIPAL */}
       {sheet && (
         <Header
           sheet={sheet}
@@ -97,6 +105,36 @@ export default function SheetViewPage() {
         />
       )}
 
+      {/* STICKY REFRESH BAR (ELEGANTE ENTERPRISE) */}
+      <div className="
+        sticky top-0 z-50
+        bg-white/70 dark:bg-[#0f0f15]/70
+        backdrop-blur-lg
+        border-b border-[#E6E1F7] dark:border-[#1F1C2A]
+        py-2 flex justify-center
+      ">
+        <button
+          onClick={() => {
+            reload();
+            setIsReloading(true);
+            setTimeout(() => setIsReloading(false), 1000);
+          }}
+          className="
+            px-4 py-2 rounded-xl
+            bg-[#7B61FF] text-white shadow-md
+            hover:bg-[#6a50f3] transition-all
+            flex items-center gap-2 text-sm font-semibold
+          "
+        >
+          <RefreshCcw
+            size={16}
+            className={isReloading ? "animate-spin-ease" : ""}
+          />
+          Atualizar dados
+        </button>
+      </div>
+
+      {/* CARD PRINCIPAL */}
       {sheet && (
         <SheetCard
           sheet={sheet}
@@ -106,6 +144,7 @@ export default function SheetViewPage() {
         />
       )}
 
+      {/* LISTA DE ITEMS */}
       <ItemsList
         items={filtered ?? []}
         loading={loading}

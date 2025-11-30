@@ -23,9 +23,6 @@ import type {
   SortField,
 } from "../types/sheet";
 
-/* ----------------------------------------------------------
-   CONSTANTES E HELPERS GERAIS
----------------------------------------------------------- */
 
 const EMPTY_FORM: ItemFormState = {
   type: "income",
@@ -37,7 +34,6 @@ const EMPTY_FORM: ItemFormState = {
   paid_at: "",
 };
 
-// extrai payload em formato Laravel ({ data: ... }) ou direto
 function extract<T = any>(res: any): T {
   if (res?.data?.data !== undefined) return res.data.data as T;
   if (res?.data !== undefined) return res.data as T;
@@ -60,9 +56,6 @@ function checkOverdue(item: UnifiedItem): boolean {
   return item.date < todayIso();
 }
 
-/* ----------------------------------------------------------
-   HOOK PRINCIPAL
----------------------------------------------------------- */
 
 export function useSheetView() {
   const { id } = useParams();
@@ -108,86 +101,74 @@ export function useSheetView() {
     Record<string, string | null>
   >({});
 
-  /* --------------------------------------------------------
-     CARREGAMENTO INICIAL
-  -------------------------------------------------------- */
 
-  const loadData = useCallback(async () => {
-    if (!id) return;
+const loadData = useCallback(async () => {
+  if (!id) return;
 
-    try {
-      setLoading(true);
+  // LIMPA DADOS ANTIGOS → permite o skeleton aparecer
+  setSheet(null);
+  setSheetItems(null);
+  setTransactionItems(null);
 
-      const [sheetRes, sheetItemsRes, transRes, banksRes, catRes] =
-        await Promise.all([
-          api.get(`/sheets/${id}`),
-          api.get(`/sheets/${id}/items`),
-          api.get(`/transactions?sheet_id=${id}`),
-          api.get(`/banks`),
-          api.get(`/categories`),
-        ]);
+  setBanks(null);
+  setCategories(null);
 
-      const sheetData = extract<any>(sheetRes);
+  setLoading(true);
 
-      setSheet({
-        ...sheetData,
-        initial_balance: Number(sheetData.initial_balance ?? 0),
-      });
+  try {
+    const [sheetRes, sheetItemsRes, transRes, banksRes, catRes] =
+      await Promise.all([
+        api.get(`/sheets/${id}`),
+        api.get(`/sheets/${id}/items`),
+        api.get(`/transactions?sheet_id=${id}`),
+        api.get(`/banks`),
+        api.get(`/categories`),
+      ]);
 
-      const sheetItemsRaw = extract<any[]>(sheetItemsRes) || [];
-      const transRaw = extract<any[]>(transRes) || [];
-      const banksRaw = extract<any[]>(banksRes) || [];
-      const catsRaw = extract<any[]>(catRes) || [];
+    const sheetData = extract<any>(sheetRes);
 
-      setSheetItems(sheetItemsRaw.map(apiItemToUnified));
+    setSheet({
+      ...sheetData,
+      initial_balance: Number(sheetData.initial_balance ?? 0),
+    });
 
-      setTransactionItems(
-        transRaw.map((raw: any) =>
-          apiItemToUnified({
-            ...raw,
-            origin: "transaction",
-            sheet_id: null,
-          })
-        )
-      );
+    const sheetItemsRaw = extract<any[]>(sheetItemsRes) || [];
+    const transRaw = extract<any[]>(transRes) || [];
 
-      setBanks(
-        banksRaw.map((b: any) => ({
-          id: b.id,
-          name: b.name,
-        }))
-      );
+    setSheetItems(sheetItemsRaw.map(apiItemToUnified));
 
-      setCategories(
-        catsRaw.map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          icon: c.icon ?? null,
-        }))
-      );
-    } catch {
-      Swal.fire("Erro", "Erro ao carregar dados.", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+    setTransactionItems(
+      transRaw.map((raw: any) =>
+        apiItemToUnified({
+          ...raw,
+          origin: "transaction",
+          sheet_id: null,
+        })
+      )
+    );
+
+    setBanks(extract<any[]>(banksRes));
+    setCategories(extract<any[]>(catRes));
+
+  } catch {
+    Swal.fire("Erro", "Erro ao carregar dados.", "error");
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
+
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  /* --------------------------------------------------------
-     COMPOSIÇÃO DE ITENS
-  -------------------------------------------------------- */
 
   const allItems = useMemo(() => {
     if (!sheetItems || !transactionItems) return null;
     return [...sheetItems, ...transactionItems];
   }, [sheetItems, transactionItems]);
 
-  /* --------------------------------------------------------
-     FILTRO + ORDENAÇÃO
-  -------------------------------------------------------- */
+
 
   const filtered = useMemo(() => {
     if (!allItems) return null;
@@ -252,9 +233,6 @@ export function useSheetView() {
     });
   }, [allItems, search, sortField, direction]);
 
-  /* --------------------------------------------------------
-     MATEMÁTICA FINANCEIRA (ENTRADAS / SAÍDAS / SALDO)
-  -------------------------------------------------------- */
 
   const { entradas, saidas, saldoFinal } = useMemo(() => {
     let totalIn = 0;
@@ -279,9 +257,7 @@ export function useSheetView() {
     };
   }, [filtered, sheet]);
 
-  /* --------------------------------------------------------
-     ATUALIZAÇÃO LOCAL DE ITEM
-  -------------------------------------------------------- */
+
 
   function updateLocalItemField(
     item: UnifiedItem,
@@ -304,9 +280,6 @@ export function useSheetView() {
     }
   }
 
-  /* --------------------------------------------------------
-     UPDATE INLINE (VALOR / DATA / PAGO / ETC)
-  -------------------------------------------------------- */
 
   async function updateInline(
     item: UnifiedItem,
@@ -323,7 +296,7 @@ export function useSheetView() {
           ? `/sheets/${sheet?.id}/items/${item.id}`
           : `/transactions/${item.id}`;
 
-      // Caso especial: alteração de "paid_at" (pago / não pago) mantendo vencimento original
+
       if (field === "paid_at") {
         const newPaid = value || null;
 
@@ -367,7 +340,6 @@ export function useSheetView() {
         return;
       }
 
-      // Atualização simples de um campo
       const res = await api.put(endpoint, { [field]: value });
       const server = extract<any>(res);
 
@@ -396,9 +368,6 @@ export function useSheetView() {
     }
   }
 
-  /* --------------------------------------------------------
-     DELETE INLINE (ITEM ÚNICO)
-  -------------------------------------------------------- */
 
   async function deleteInline(item: UnifiedItem) {
     const endpoint =
@@ -424,9 +393,7 @@ export function useSheetView() {
     });
   }
 
-  /* --------------------------------------------------------
-     DELETE SHEET
-  -------------------------------------------------------- */
+
 
   async function deleteSheet() {
     if (!sheet) return;
@@ -449,9 +416,7 @@ export function useSheetView() {
     navigate("/sheets");
   }
 
-  /* --------------------------------------------------------
-     MODAIS (ABERTURA)
-  -------------------------------------------------------- */
+
 
   function openCreateItemModal() {
     setModalMode("create");
@@ -491,9 +456,6 @@ export function useSheetView() {
     setShowSheetModal(true);
   }
 
-  /* --------------------------------------------------------
-     SAVE ITEM (CRIAR / EDITAR) VIA MODAL
-  -------------------------------------------------------- */
 
   async function saveItemFromModal() {
     if (!sheet || savingItem) return;
@@ -514,7 +476,6 @@ export function useSheetView() {
     try {
       setSavingItem(true);
 
-      // CRIAÇÃO
       if (modalMode === "create") {
         const res = await api.post(`/sheets/${sheet.id}/items`, payload);
 
@@ -529,7 +490,6 @@ export function useSheetView() {
           bank: banks?.find((b) => b.id === unified.bank_id) || null,
         };
 
-        // Se o banco ainda não está na lista, adiciona
         if (unified.bank_id && !banks?.some((b) => b.id === unified.bank_id)) {
           const newBank: Bank = {
             id: Number(unified.bank_id),
@@ -608,9 +568,7 @@ export function useSheetView() {
     }
   }
 
-  /* --------------------------------------------------------
-     SAVE SHEET (EDIÇÃO DE CABEÇALHO)
-  -------------------------------------------------------- */
+
 
   async function saveSheet() {
     if (!sheet || savingSheet) return;
@@ -716,5 +674,7 @@ export function useSheetView() {
 
     getCategoryIconByCode,
     getCategoryIconComponent,
+    
+    reload: loadData,
   };
 }

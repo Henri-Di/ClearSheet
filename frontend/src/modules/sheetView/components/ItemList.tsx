@@ -1,5 +1,14 @@
+import { useState, useRef } from "react";
 import { ItemRow } from "./ItemRow";
 import EmptyState from "./EmptyState";
+
+import {
+  Trash2,
+  Edit2,
+  CheckCircle2,
+  Calendar,
+  Banknote,
+} from "lucide-react";
 
 import type { UnifiedItem, Bank, Category } from "../types/sheet";
 
@@ -59,9 +68,9 @@ export default function ItemsList(props: Props) {
     getTodayIso,
   } = props;
 
-  /* ==========================================================================
-      SKELETON LOADING
-  ========================================================================== */
+  /* =======================================================================
+      1) SKELETON DESKTOP (MANTIDO)
+  ======================================================================= */
   if (loading) {
     return (
       <div
@@ -69,21 +78,18 @@ export default function ItemsList(props: Props) {
           rounded-3xl overflow-x-auto relative
           bg-white border border-[#E6E1F7] shadow
           dark:bg-[#13111B] dark:border-[#1F1C2A] dark:shadow-xl
-
           max-h-[70vh] overflow-y-auto custom-scroll
         "
       >
-        {/* Shimmer (light) */}
+        {/* shimmer light */}
         <div
           className="
             absolute inset-0 z-10 pointer-events-none
             bg-gradient-to-r from-transparent via-[#EDE7FF]/50 to-transparent
-            animate-shimmer
-            dark:hidden
+            animate-shimmer dark:hidden
           "
         />
-
-        {/* Shimmer (dark) */}
+        {/* shimmer dark */}
         <div
           className="
             hidden dark:block absolute inset-0 z-10 pointer-events-none
@@ -91,159 +97,27 @@ export default function ItemsList(props: Props) {
             animate-shimmer
           "
         />
-
         <table className="w-full min-w-[1400px] relative z-20">
-
-          {/* LIGHT HEADER SKELETON */}
-          <thead className="border-b border-[#E6E1F7] bg-[#F7F5FF] dark:hidden sticky top-0 z-30">
-            <tr>
-              {[
-                "w-10",
-                "w-[34%]",
-                "w-[20%]",
-                "w-[12%]",
-                "w-[18%]",
-                "w-[10%]",
-                "w-[16%]",
-                "w-32",
-              ].map((w, i) => (
-                <th key={i} className="py-4 px-3 text-center">
-                  <div className={`h-4 rounded bg-[#E7E2FF] ${w} mx-auto`} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          {/* DARK HEADER SKELETON */}
-          <thead className="hidden dark:table-header-group border-b border-[#1F1C2A] bg-[#14121E] sticky top-0 z-30">
-            <tr>
-              {[
-                "w-10",
-                "w-[34%]",
-                "w-[20%]",
-                "w-[12%]",
-                "w-[18%]",
-                "w-[10%]",
-                "w-[16%]",
-                "w-32",
-              ].map((w, i) => (
-                <th key={i} className="py-4 px-3">
-                  <div className={`h-4 rounded bg-[#2A2638] ${w} mx-auto`} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          {/* LIGHT SKELETON ROWS */}
-          <tbody className="dark:hidden">
-            {[...Array(8)].map((_, i) => (
-              <tr key={i} className="border-b border-[#F0ECFF]">
-                <td className="py-6 px-4 text-center">
-                  <div className="h-4 w-4 rounded bg-[#E6E1F7] mx-auto" />
-                </td>
-
+          <tbody>
+            {[...Array(6)].map((_, i) => (
+              <tr
+                key={i}
+                className="border-b border-[#F0ECFF] dark:border-[#1B1824]"
+              >
                 <td className="py-6 px-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="h-4 w-24 rounded-full bg-[#DED7FF]" />
-                    <div className="h-10 w-full rounded-2xl bg-[#EDEAFF]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#EAE6FF]" />
-                    <div className="h-6 w-32 rounded bg-[#DED9F8]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-10 w-24 rounded-2xl bg-[#EDEAFF] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-10 w-32 rounded-2xl bg-[#EFEAFF] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-6 w-20 rounded bg-[#E6E1F7] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#E8E3FF]" />
-                    <div className="h-10 w-full rounded-2xl bg-[#F1ECFF]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex justify-end gap-3">
-                    <div className="h-6 w-10 rounded bg-[#E6E1F7]" />
-                    <div className="h-6 w-12 rounded bg-[#E3DFFF]" />
-                  </div>
+                  <div className="h-10 w-full rounded-xl bg-[#eee] dark:bg-[#2A2638]" />
                 </td>
               </tr>
             ))}
           </tbody>
-
-          {/* DARK SKELETON ROWS */}
-          <tbody className="hidden dark:table-row-group">
-            {[...Array(8)].map((_, i) => (
-              <tr key={i} className="border-b border-[#1B1824]">
-                <td className="py-6 px-4 text-center">
-                  <div className="h-4 w-4 rounded bg-[#2A2638] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="h-4 w-20 rounded-full bg-[#2D293C]" />
-                    <div className="h-10 w-full rounded-2xl bg-[#231F2E]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#2A2638]" />
-                    <div className="h-6 w-32 rounded bg-[#2D293C]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-10 w-24 rounded-2xl bg-[#231F2E] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-10 w-32 rounded-2xl bg-[#231F2E] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4 text-center">
-                  <div className="h-6 w-20 rounded bg-[#2A2638] mx-auto" />
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#2A2638]" />
-                    <div className="h-10 w-full rounded-2xl bg-[#231F2E]" />
-                  </div>
-                </td>
-
-                <td className="py-6 px-4">
-                  <div className="flex justify-end gap-3">
-                    <div className="h-6 w-10 rounded bg-[#2A2638]" />
-                    <div className="h-6 w-12 rounded bg-[#2D293C]" />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-
         </table>
       </div>
     );
   }
 
-  /* ==========================================================================
-      EMPTY LIST
-  ========================================================================== */
+  /* =======================================================================
+      2) EMPTY
+  ======================================================================= */
   if (items.length === 0) {
     return (
       <EmptyState
@@ -253,70 +127,260 @@ export default function ItemsList(props: Props) {
     );
   }
 
-  /* ==========================================================================
-      LISTA REAL
-  ========================================================================== */
+  /* =======================================================================
+      3) MOBILE ADVANCED CARDS  — SOMENTE < 640px
+  ======================================================================= */
+
+  const grouped = groupByDate(items);
+
+  function groupByDate(list: UnifiedItem[]) {
+    const map: Record<string, UnifiedItem[]> = {};
+    list.forEach((item) => {
+      const label = item.date ? item.date : "sem-data";
+      if (!map[label]) map[label] = [];
+      map[label] = [...map[label], item];
+    });
+    return map;
+  }
+
+  return (
+    <>
+      {/* ================================
+            MOBILE CARDS
+          ================================ */}
+      <div className="block sm:hidden space-y-8">
+        {Object.keys(grouped)
+          .sort()
+          .map((date) => (
+            <div key={date}>
+              {/* Group Header */}
+              <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
+                <Calendar size={14} />
+                {date === "sem-data" ? "Sem data" : formatBrDate(date)}
+              </div>
+
+              {/* Cards */}
+              <div className="space-y-4">
+                {grouped[date].map((item) => {
+                  const key = `${item.origin}-${item.id}`;
+                  const isUpdating = updatingInlineKey === key;
+                  const isUpdated = lastUpdatedKey === key;
+
+                  return (
+                    <MobileCard
+                      key={key}
+                      item={item}
+                      banks={banks}
+                      categories={categories}
+                      isUpdating={isUpdating}
+                      isUpdated={isUpdated}
+                      updateInline={updateInline}
+                      deleteInline={deleteInline}
+                      openEditItemModal={openEditItemModal}
+                      getTodayIso={getTodayIso}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+      </div>
+
+      {/* ================================
+            DESKTOP TABLE NORMAL
+          ================================ */}
+      <div
+        className="
+          hidden sm:block rounded-3xl overflow-x-auto
+          bg-white border border-[#E6E1F7] shadow
+          dark:bg-[#13111B] dark:border-[#1F1C2A]
+          max-h-[70vh] overflow-y-auto custom-scroll
+        "
+      >
+        <table className="w-full min-w-[1400px]">
+          <thead className="sticky top-0 z-30 bg-[#F5F2FF] border-b border-[#E6E1F7] dark:hidden shadow-sm">
+            <tr className="text-gray-700 text-[13px] font-semibold">
+              <th className="py-3 px-3 w-10 text-center">#</th>
+              <th className="py-3 px-3 w-[34%] text-left">Descrição</th>
+              <th className="py-3 px-3 w-[20%] text-left">Categoria</th>
+              <th className="py-3 px-3 w-[12%] text-left">Valor</th>
+              <th className="py-3 px-3 w-[18%] text-left">Data</th>
+              <th className="py-3 px-3 w-[10%] text-left">Status</th>
+              <th className="py-3 px-3 w-[16%] text-left">Banco</th>
+              <th className="py-3 px-3 w-32 text-right pr-6">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {items.map((item, index) => (
+              <ItemRow
+                key={`${item.origin}-${item.id}`}
+                item={item}
+                index={index}
+                banks={banks}
+                categories={categories}
+                updatingInlineKey={updatingInlineKey}
+                lastUpdatedKey={lastUpdatedKey}
+                updateLocalItemField={updateLocalItemField}
+                updateInline={updateInline}
+                deleteInline={deleteInline}
+                openEditItemModal={openEditItemModal}
+                getTodayIso={getTodayIso}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/* =======================================================================
+    COMPONENTE — MOBILE ADVANCED CARD
+======================================================================= */
+function MobileCard({
+  item,
+  isUpdating,
+  isUpdated,
+  updateInline,
+  deleteInline,
+  openEditItemModal,
+  getTodayIso,
+}: any) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  /* Swipe left to delete */
+  const [offset, setOffset] = useState(0);
+  const startX = useRef(0);
+  const dragging = useRef(false);
+
+  function handleTouchStart(e: any) {
+    startX.current = e.touches[0].clientX;
+    dragging.current = true;
+  }
+
+  function handleTouchMove(e: any) {
+    if (!dragging.current) return;
+    const delta = e.touches[0].clientX - startX.current;
+    if (delta < 0) setOffset(delta);
+  }
+
+  function handleTouchEnd() {
+    dragging.current = false;
+    if (offset < -80) {
+      deleteInline(item);
+    }
+    setOffset(0);
+  }
+
+  /* Status badge */
+  const status =
+    item.paid_at
+      ? { label: "Pago", class: "badge-paid", icon: <CheckCircle2 size={14} /> }
+      : item.date < getTodayIso()
+        ? { label: "Vencido", class: "badge-overdue" }
+        : { label: "A vencer", class: "badge-due" };
+
   return (
     <div
-      className="
-        rounded-3xl overflow-x-auto
-        bg-white border border-[#E6E1F7] shadow
-        dark:bg-[#13111B] dark:border-[#1F1C2A] dark:shadow-xl
+      ref={cardRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ transform: `translateX(${offset}px)` }}
+      className={`
+        p-4 rounded-2xl bg-white dark:bg-[#1A1623]
+        border border-[#E6E1F7] dark:border-[#1F1C2A]
+        shadow-sm dark:shadow-lg relative
+        transition-all duration-300
 
-        max-h-[70vh] overflow-y-auto custom-scroll
-      "
+        ${isUpdating ? "opacity-50 blur-[1px]" : ""}
+        ${isUpdated ? "ring-2 ring-[#7B61FF] ring-offset-2" : ""}
+        animate-slide-up
+      `}
     >
-      <table className="w-full min-w-[1400px] bg-white dark:bg-[#13111B]">
+      {/* Descrição */}
+      <div className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">
+        {item.description || "(Sem descrição)"}
+      </div>
 
-        {/* HEADER LIGHT */}
-        <thead className="sticky top-0 z-30 bg-[#F5F2FF] border-b border-[#E6E1F7] dark:hidden shadow-sm">
-          <tr className="text-gray-700 text-[13px] font-semibold">
-            <th className="py-3 px-3 w-10 text-center">#</th>
-            <th className="py-3 px-3 w-[34%] text-left">Descrição</th>
-            <th className="py-3 px-3 w-[20%] text-left">Categoria</th>
-            <th className="py-3 px-3 w-[12%] text-left">Valor</th>
-            <th className="py-3 px-3 w-[18%] text-left">Data</th>
-            <th className="py-3 px-3 w-[10%] text-left">Status</th>
-            <th className="py-3 px-3 w-[16%] text-left">Banco</th>
-            <th className="py-3 px-3 w-32 text-right pr-6">Ações</th>
-          </tr>
-        </thead>
+      {/* Categoria + Valor */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-xs px-2 py-1 rounded-lg bg-[#F5F2FF] dark:bg-[#2A2538] text-gray-700 dark:text-gray-100">
+          {item.category?.name ?? "Categoria"}
+        </div>
 
-        {/* HEADER DARK */}
-        <thead className="hidden dark:table-header-group sticky top-0 z-30 bg-[#14121E] border-b border-[#1F1C2A] shadow-md">
-          <tr className="text-[#8F8BA0] text-[12px] font-semibold uppercase tracking-wide">
-            <th className="py-4 px-3 w-10 text-center">#</th>
-            <th className="py-4 px-3 w-[34%] text-left">Descrição</th>
-            <th className="py-4 px-3 w-[20%] text-left">Categoria</th>
-            <th className="py-4 px-3 w-[12%] text-left">Valor</th>
-            <th className="py-4 px-3 w-[18%] text-left">Data</th>
-            <th className="py-4 px-3 w-[10%] text-left">Status</th>
-            <th className="py-4 px-3 w-[16%] text-left">Banco</th>
-            <th className="py-4 px-3 w-32 text-right pr-6">Ações</th>
-          </tr>
-        </thead>
+        <div
+          className={`
+            text-lg font-bold
+            ${item.type === "income" ? "text-green-600" : "text-red-500"}
+          `}
+        >
+          R$ {Number(item.value).toFixed(2)}
+        </div>
+      </div>
 
-        {/* LISTA */}
-        <tbody>
-          {items.map((item, index) => (
-            <ItemRow
-              key={`${item.origin}-${item.id}`}
-              item={item}
-              index={index}
-              banks={banks}
-              categories={categories}
-              updatingInlineKey={updatingInlineKey}
-              lastUpdatedKey={lastUpdatedKey}
-              updateLocalItemField={updateLocalItemField}
-              updateInline={updateInline}
-              deleteInline={deleteInline}
-              openEditItemModal={openEditItemModal}
-              getTodayIso={getTodayIso}
-            />
-          ))}
-        </tbody>
+      {/* Linha de infos */}
+      <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-1">
+          <Calendar size={12} /> {item.date || "--"}
+        </div>
 
-      </table>
+        {item.bank && (
+          <div className="flex items-center gap-1">
+            <Banknote size={12} />
+            {item.bank.name}
+          </div>
+        )}
+
+        <div className={status.class}>{status.label}</div>
+      </div>
+
+      {/* Ações */}
+      <div className="flex justify-end gap-2 mt-4">
+        {!item.paid_at && item.type === "expense" && (
+          <button
+            onClick={() => updateInline(item, "paid_at", getTodayIso())}
+            className="
+              text-xs px-3 py-1.5 rounded-xl
+              bg-green-100 text-green-600
+              dark:bg-[#1d3a32] dark:text-green-300
+              flex items-center gap-1
+            "
+          >
+            <CheckCircle2 size={14} /> Pagar agora
+          </button>
+        )}
+
+        <button
+          onClick={() => openEditItemModal(item)}
+          className="
+            text-xs px-3 py-1.5 rounded-xl
+            bg-[#EFEAFF] text-[#7B61FF]
+            dark:bg-[#2A2538] dark:text-[#CBB6FF]
+          "
+        >
+          <Edit2 size={14} />
+        </button>
+
+        <button
+          onClick={() => deleteInline(item)}
+          className="
+            text-xs px-3 py-1.5 rounded-xl
+            bg-red-100 text-red-600
+            dark:bg-[#3A1F25] dark:text-red-300
+          "
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
     </div>
   );
+}
+
+/* Format Brazilian Date */
+function formatBrDate(d: string) {
+  if (!d) return "--";
+  const [y, m, day] = d.split("-");
+  return `${day}/${m}/${y}`;
 }
