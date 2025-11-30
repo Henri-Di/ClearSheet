@@ -5,30 +5,30 @@ interface LogoProps {
   forceLight?: boolean;
 }
 
-
 export function ClearSheetLogo({ size = 80, forceLight = false }: LogoProps) {
   const iconSize = size * 0.34;
-  const iconPadding = size * 0.2;
+  const padding = size * 0.18;
   const fontSize = size * 0.28;
   const gap = size * 0.14;
 
   return (
     <div
-      className="flex items-center select-none relative"
+      className="flex items-center relative select-none"
       style={{ gap }}
     >
-
       <div
         className="
-          relative rounded-3xl shadow-xl backdrop-blur-2xl 
-          overflow-hidden border
-          transition-all duration-300 
+          relative rounded-3xl shadow-xl backdrop-blur-2xl overflow-hidden border
+          transition-all duration-300 flex items-center justify-center
         "
         style={{
-          padding: iconPadding,
+          padding,
+          width: size,
+          height: size,
+          minWidth: size * 0.9,
+          minHeight: size * 0.9,
         }}
       >
-    
         <div
           className={`
             absolute inset-0 rounded-3xl
@@ -43,7 +43,6 @@ export function ClearSheetLogo({ size = 80, forceLight = false }: LogoProps) {
           }}
         />
 
-       
         <div
           className={`
             absolute inset-0 rounded-3xl
@@ -58,11 +57,9 @@ export function ClearSheetLogo({ size = 80, forceLight = false }: LogoProps) {
           }}
         />
 
-     
         <div
           className="
-            absolute inset-0 rounded-3xl pointer-events-none
-            opacity-40 blur-xl
+            absolute inset-0 rounded-3xl pointer-events-none opacity-40 blur-xl
           "
           style={{
             background:
@@ -70,15 +67,11 @@ export function ClearSheetLogo({ size = 80, forceLight = false }: LogoProps) {
           }}
         />
 
-   
         <Layers
           size={iconSize}
           className={`
             relative z-10 transition-colors drop-shadow-xl
-            ${forceLight
-              ? "text-[#7B61FF]"
-              : "text-[#7B61FF] dark:text-[#BFAAFF]"
-            }
+            ${forceLight ? "text-[#7B61FF]" : "text-[#7B61FF] dark:text-[#BFAAFF]"}
           `}
           style={{
             filter:
@@ -86,7 +79,6 @@ export function ClearSheetLogo({ size = 80, forceLight = false }: LogoProps) {
           }}
         />
       </div>
-
 
       <div className="flex flex-col leading-none tracking-tight font-display select-none">
         <span

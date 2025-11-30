@@ -77,7 +77,6 @@ export function Header({
         space-y-6
       "
     >
-      {/* TOPO */}
       <div className="flex items-start gap-4">
         <Link
           to="/sheets"
@@ -109,9 +108,7 @@ export function Header({
         </div>
       </div>
 
-      {/* FILTROS AVANÇADOS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Search */}
         <div className="relative">
           <Search
             size={18}
@@ -130,81 +127,147 @@ export function Header({
           />
         </div>
 
-        {/* Categoria */}
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="
-            w-full py-2 px-3 rounded-xl text-sm
-            bg-[#FBFAFF] dark:bg-[#181720]
-            border border-[#E0DEED] dark:border-[#262433]
-          "
-        >
-          <option value="">Categoria</option>
-          {categories?.map((c) => (
-            <option key={c.id} value={String(c.id)}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative w-full">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="
+              w-full py-2 px-3 pr-8 rounded-xl text-sm
+              bg-[#FBFAFF] dark:bg-[#181720]
+              border border-[#E0DEED] dark:border-[#262433]
 
-        {/* Banco */}
-        <select
-          value={bank}
-          onChange={(e) => setBank(e.target.value)}
-          className="
-            w-full py-2 px-3 rounded-xl text-sm
-            bg-[#FBFAFF] dark:bg-[#181720]
-            border border-[#E0DEED] dark:border-[#262433]
-          "
-        >
-          <option value="">Banco</option>
-          {banks?.map((b) => (
-            <option key={b.id} value={String(b.id)}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+              appearance-none
+              focus:outline-none
+            "
+          >
+            <option value="">Categoria</option>
+            {categories?.map((c) => (
+              <option key={c.id} value={String(c.id)}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-        {/* Sort Field + Direction */}
+          <ChevronDown
+            size={16}
+            className="
+              absolute right-3 top-1/2 -translate-y-1/2
+              text-gray-400 dark:text-gray-500
+              pointer-events-none
+            "
+          />
+        </div>
+
+        <div className="relative w-full">
+          <select
+            value={bank}
+            onChange={(e) => setBank(e.target.value)}
+            className="
+              w-full py-2 px-3 pr-8 rounded-xl text-sm
+              bg-[#FBFAFF] dark:bg-[#181720]
+              border border-[#E0DEED] dark:border-[#262433]
+
+              appearance-none
+              focus:outline-none
+            "
+          >
+            <option value="">Banco</option>
+            {banks?.map((b) => (
+              <option key={b.id} value={String(b.id)}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+
+          <ChevronDown
+            size={16}
+            className="
+              absolute right-3 top-1/2 -translate-y-1/2
+              text-gray-400 dark:text-gray-500
+              pointer-events-none
+            "
+          />
+        </div>
+
         <div className="flex gap-2">
-          <select
-            value={sortField}
-            onChange={(e) => setSortField(e.target.value as SortField)}
-            className="
-              w-full py-2 px-3 rounded-xl text-sm
-              bg-[#FBFAFF] dark:bg-[#181720]
-              border border-[#E0DEED] dark:border-[#262433]
-            "
-          >
-            <option value="date">Data</option>
-            <option value="value">Valor</option>
-            <option value="category">Categoria</option>
-            <option value="bank">Banco</option>
-            <option value="type">Tipo</option>
-            <option value="origin">Origem</option>
-          </select>
+          <div className="relative w-full">
+            <select
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as SortField)}
+              className="
+                w-full py-2 px-3 pr-8 rounded-xl text-sm
+                bg-[#FBFAFF] dark:bg-[#181720]
+                border border-[#E0DEED] dark:border-[#262433]
 
-          <select
-            value={direction}
-            onChange={(e) => setDirection(e.target.value as any)}
-            className="
-              w-28 py-2 px-3 rounded-xl text-sm
-              bg-[#FBFAFF] dark:bg-[#181720]
-              border border-[#E0DEED] dark:border-[#262433]
-            "
-          >
-            <option value="asc">Asc</option>
-            <option value="desc">Desc</option>
-          </select>
+                appearance-none
+                focus:outline-none
+              "
+            >
+              <option value="date">Data</option>
+              <option value="value">Valor</option>
+              <option value="category">Categoria</option>
+              <option value="bank">Banco</option>
+              <option value="type">Tipo</option>
+              <option value="origin">Origem</option>
+            </select>
+
+            <ChevronDown
+              size={16}
+              className="
+                absolute right-3 top-1/2 -translate-y-1/2
+                text-gray-400 dark:text-gray-500
+                pointer-events-none
+              "
+            />
+          </div>
+
+          <div className="relative w-28">
+            <select
+              value={direction}
+              onChange={(e) => setDirection(e.target.value as any)}
+              className="
+                w-full py-2 px-3 pr-8 rounded-xl text-sm
+                bg-[#FBFAFF] dark:bg-[#181720]
+                border border-[#E0DEED] dark:border-[#262433]
+
+                appearance-none
+                focus:outline-none
+              "
+            >
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+
+            <ChevronDown
+              size={16}
+              className="
+                absolute right-3 top-1/2 -translate-y-1/2
+                text-gray-400 dark:text-gray-500
+                pointer-events-none
+              "
+            />
+          </div>
         </div>
       </div>
 
-      {/* AÇÕES */}
-      <div className="flex flex-wrap gap-4">
+      <div className="relative flex flex-row gap-4 items-center flex-wrap">
 
-        {/* Botão Ordenar + SortMenu */}
-        <div className="relative overflow-visible">
+        {/* NOVO ITEM — AGORA PRIMEIRO */}
+        <button
+          onClick={openCreateItemModal}
+          className="
+            px-6 py-2 rounded-xl text-sm flex items-center gap-2 font-medium
+            bg-[#7B61FF] text-white shadow-sm
+            hover:bg-[#6A54E6]
+            dark:bg-[#7B61FF] dark:hover:bg-[#9D8AFF]
+          "
+        >
+          <Plus size={18} />
+          Novo item
+        </button>
+
+        {/* ORDENAR */}
+        <div className="relative flex-none">
           <button
             className="
               rounded-xl px-4 py-2 flex items-center gap-2 text-sm
@@ -250,7 +313,7 @@ export function Header({
           />
         </div>
 
-        {/* Editar */}
+        {/* EDITAR */}
         <button
           onClick={openEditSheetModal}
           className="
@@ -265,7 +328,7 @@ export function Header({
           Editar
         </button>
 
-        {/* Excluir */}
+        {/* EXCLUIR */}
         <button
           onClick={deleteSheet}
           className="
@@ -278,20 +341,6 @@ export function Header({
         >
           <Trash2 size={16} />
           Excluir
-        </button>
-
-        {/* Novo Item */}
-        <button
-          onClick={openCreateItemModal}
-          className="
-            px-6 py-2 rounded-xl text-sm flex items-center gap-2 font-medium
-            bg-[#7B61FF] text-white shadow-sm
-            hover:bg-[#6A54E6]
-            dark:bg-[#7B61FF] dark:hover:bg-[#9D8AFF]
-          "
-        >
-          <Plus size={18} />
-          Novo item
         </button>
       </div>
     </div>

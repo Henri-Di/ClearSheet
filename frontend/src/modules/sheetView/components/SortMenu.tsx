@@ -24,15 +24,17 @@ export function SortMenu({
   open,
   applySort,
 }: Props) {
+
   if (!open) return null;
 
   return (
     <div
       className="
         absolute
-        top-[110%]
+        top-[calc(100%+8px)]
         right-0
-        z-50
+        z-[9999]
+
         w-60
         rounded-2xl
         p-2
@@ -50,9 +52,16 @@ export function SortMenu({
     >
       <div
         className="
-          max-h-[260px]
+          max-h-[200px]
           overflow-y-auto
-          pr-1
+
+          /* ALINHAMENTO DO SCROLL — FIX */
+          pr-2
+          mr-[-4px]
+
+          scrollbar-thin
+          scrollbar-thumb-[#D0C7FF]
+          dark:scrollbar-thumb-[#3A334B]
         "
       >
         {options.map((opt) => {
@@ -63,13 +72,18 @@ export function SortMenu({
               key={opt.key}
               onClick={() => applySort(opt.key as SortField)}
               className={`
-                w-full px-3 py-3 rounded-xl text-sm
-                flex items-center justify-between 
-                transition-all select-none
+                w-full
+                px-3 py-3
+                rounded-xl
+                text-sm
+                flex items-center justify-between
+                transition-all
+                select-none
 
-                ${active
-                  ? "text-[#7B61FF] font-semibold bg-[#F4F0FF] dark:bg-[#241F33] dark:text-[#B7A4FF]"
-                  : "text-[#3A3843] dark:text-[#C8C5D6]"
+                ${
+                  active
+                    ? "text-[#7B61FF] font-semibold bg-[#F4F0FF] dark:bg-[#241F33] dark:text-[#B7A4FF]"
+                    : "text-[#3A3843] dark:text-[#C8C5D6]"
                 }
 
                 hover:bg-[#EEE8FF] dark:hover:bg-[#241F33]

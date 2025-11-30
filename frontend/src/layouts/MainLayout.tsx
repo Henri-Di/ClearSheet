@@ -16,9 +16,6 @@ import { ThemeToggle } from "../components/ThemeToggle";
 import { api } from "../services/api";
 import Swal from "sweetalert2";
 
-/* ============================================================================
-   MENU ITEM COMPONENT
-============================================================================ */
 interface MenuItemProps {
   to?: string;
   icon: React.ReactNode;
@@ -49,27 +46,13 @@ function MenuItem({
     ${disabled ? "opacity-50 pointer-events-none" : ""}
   `;
 
+  const activeBg =
+    "bg-gradient-to-r from-[#F1E9FF] to-[#F8F5FF] dark:from-[#1d1a29] dark:to-[#262233] border-[#DCD3FF] dark:border-[#373046] shadow-lg scale-[1.02]";
+  const idleBg =
+    "bg-white/60 dark:bg-[#1d1a26]/60 border-white/20 dark:border-black/20";
+
   return to ? (
-    <Link
-      to={to}
-      className={`
-        ${baseStyle}
-        ${color}
-        ${
-          isActive
-            ? `
-              bg-gradient-to-r from-[#ECE8FF] to-[#F8F6FF]
-              dark:from-[#231d31] dark:to-[#2f2a40]
-              border-[#D4CCFF] dark:border-[#3b3347]
-              shadow-lg scale-[1.02]
-            `
-            : `
-              bg-white/60 dark:bg-[#1d1a26]/60
-              border-white/20 dark:border-black/20
-            `
-        }
-      `}
-    >
+    <Link to={to} className={`${baseStyle} ${color} ${isActive ? activeBg : idleBg}`}>
       <div
         className={`
           p-2 rounded-xl flex items-center justify-center
@@ -92,10 +75,7 @@ function MenuItem({
   ) : (
     <button
       onClick={onClick}
-      className={`
-        ${baseStyle}
-        hover:bg-red-50 dark:hover:bg-[#3a1f25]
-      `}
+      className={`${baseStyle} hover:bg-red-50 dark:hover:bg-[#3a1f25]`}
     >
       <div
         className={`
@@ -109,17 +89,12 @@ function MenuItem({
       </div>
 
       {!collapsed && (
-        <span className="font-medium text-red-500 dark:text-red-400">
-          {label}
-        </span>
+        <span className="font-medium text-red-500 dark:text-red-400">{label}</span>
       )}
     </button>
   );
 }
 
-/* ============================================================================
-   MAIN LAYOUT
-============================================================================ */
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -127,7 +102,6 @@ export default function MainLayout() {
 
   const navigate = useNavigate();
 
-  /* PREVENIR FLASH DE LAYOUT — detecta tamanho antes do render */
   useEffect(() => {
     const applyInitialCollapse = () => {
       if (window.innerWidth < 1024) {
@@ -141,7 +115,6 @@ export default function MainLayout() {
     return () => window.removeEventListener("resize", applyInitialCollapse);
   }, []);
 
-  /* Logout */
   async function handleLogout() {
     setLoadingLogout(true);
 
@@ -165,7 +138,6 @@ export default function MainLayout() {
     }
   }
 
-  /* PROTEGER CONTRA FLICKER — layout invisível até decidir o colapso */
   if (!isReady) {
     return (
       <div className="w-full h-screen bg-light-bg dark:bg-dark-bg opacity-0 pointer-events-none" />
@@ -174,12 +146,10 @@ export default function MainLayout() {
 
   return (
     <div className="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-all duration-300">
-
-      {/* SIDEBAR */}
       <aside
         className={`
           fixed lg:relative z-40 flex flex-col h-screen 
-          bg-gradient-to-br from-[#F6F3FF] to-[#EFECF9]
+          bg-gradient-to-br from-[#F6F3FF] to-[#F1EEFB]
           dark:from-[#14111c] dark:to-[#1b1724]
           border-r border-[#E7E5F0] dark:border-[#2a2538]
           shadow-xl backdrop-blur-2xl
@@ -187,7 +157,6 @@ export default function MainLayout() {
           ${collapsed ? "w-20" : "w-72"}
         `}
       >
-        {/* LOGO + COLLAPSE */}
         <div className="flex items-center justify-between mb-10">
           {!collapsed && (
             <div className="animate-fade-in">
@@ -207,12 +176,11 @@ export default function MainLayout() {
           </button>
         </div>
 
-        {/* MENU */}
         <nav className="space-y-2">
           <MenuItem
             to="/app/dashboard"
             icon={<LayoutDashboard size={22} className="text-[#7B61FF]" />}
-            color="hover:bg-[#ECE8FF] dark:hover:bg-[#251f32]"
+            color="hover:bg-[#F1E9FF] dark:hover:bg-[#251f32]"
             label="Dashboard"
             collapsed={collapsed}
           />
@@ -220,7 +188,7 @@ export default function MainLayout() {
           <MenuItem
             to="/app/categories"
             icon={<FolderTree size={22} className="text-[#FFA657]" />}
-            color="hover:bg-[#FFF2E6] dark:hover:bg-[#33261e]"
+            color="hover:bg-[#FFEBD8] dark:hover:bg-[#33261e]"
             label="Categorias"
             collapsed={collapsed}
           />
@@ -259,11 +227,10 @@ export default function MainLayout() {
         />
       </aside>
 
-      {/* MAIN CONTENT */}
       <main
         className={`
           flex-1 transition-all duration-300
-          ${!isReady ? "ml-0" : collapsed ? "ml-20" : "ml-72"}
+          ${collapsed ? "ml-20" : "ml-72"}
           lg:ml-0
           p-6 sm:p-8
         `}
