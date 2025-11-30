@@ -59,7 +59,9 @@ export default function ItemsList(props: Props) {
     getTodayIso,
   } = props;
 
-
+  /* ==========================================================================
+      SKELETON LOADING
+  ========================================================================== */
   if (loading) {
     return (
       <div
@@ -67,9 +69,11 @@ export default function ItemsList(props: Props) {
           rounded-3xl overflow-x-auto relative
           bg-white border border-[#E6E1F7] shadow
           dark:bg-[#13111B] dark:border-[#1F1C2A] dark:shadow-xl
+
+          max-h-[70vh] overflow-y-auto custom-scroll
         "
       >
-
+        {/* Shimmer (light) */}
         <div
           className="
             absolute inset-0 z-10 pointer-events-none
@@ -79,7 +83,7 @@ export default function ItemsList(props: Props) {
           "
         />
 
-
+        {/* Shimmer (dark) */}
         <div
           className="
             hidden dark:block absolute inset-0 z-10 pointer-events-none
@@ -90,7 +94,8 @@ export default function ItemsList(props: Props) {
 
         <table className="w-full min-w-[1400px] relative z-20">
 
-          <thead className="border-b border-[#E6E1F7] bg-[#F7F5FF] dark:hidden">
+          {/* LIGHT HEADER SKELETON */}
+          <thead className="border-b border-[#E6E1F7] bg-[#F7F5FF] dark:hidden sticky top-0 z-30">
             <tr>
               {[
                 "w-10",
@@ -109,7 +114,8 @@ export default function ItemsList(props: Props) {
             </tr>
           </thead>
 
-          <thead className="hidden dark:table-header-group border-b border-[#1F1C2A] bg-[#14121E]">
+          {/* DARK HEADER SKELETON */}
+          <thead className="hidden dark:table-header-group border-b border-[#1F1C2A] bg-[#14121E] sticky top-0 z-30">
             <tr>
               {[
                 "w-10",
@@ -128,6 +134,7 @@ export default function ItemsList(props: Props) {
             </tr>
           </thead>
 
+          {/* LIGHT SKELETON ROWS */}
           <tbody className="dark:hidden">
             {[...Array(8)].map((_, i) => (
               <tr key={i} className="border-b border-[#F0ECFF]">
@@ -178,6 +185,7 @@ export default function ItemsList(props: Props) {
             ))}
           </tbody>
 
+          {/* DARK SKELETON ROWS */}
           <tbody className="hidden dark:table-row-group">
             {[...Array(8)].map((_, i) => (
               <tr key={i} className="border-b border-[#1B1824]">
@@ -233,7 +241,9 @@ export default function ItemsList(props: Props) {
     );
   }
 
-
+  /* ==========================================================================
+      EMPTY LIST
+  ========================================================================== */
   if (items.length === 0) {
     return (
       <EmptyState
@@ -243,19 +253,23 @@ export default function ItemsList(props: Props) {
     );
   }
 
-
+  /* ==========================================================================
+      LISTA REAL
+  ========================================================================== */
   return (
     <div
       className="
         rounded-3xl overflow-x-auto
         bg-white border border-[#E6E1F7] shadow
         dark:bg-[#13111B] dark:border-[#1F1C2A] dark:shadow-xl
+
+        max-h-[70vh] overflow-y-auto custom-scroll
       "
     >
       <table className="w-full min-w-[1400px] bg-white dark:bg-[#13111B]">
 
-
-        <thead className="bg-[#F5F2FF] border-b border-[#E6E1F7] dark:hidden">
+        {/* HEADER LIGHT */}
+        <thead className="sticky top-0 z-30 bg-[#F5F2FF] border-b border-[#E6E1F7] dark:hidden shadow-sm">
           <tr className="text-gray-700 text-[13px] font-semibold">
             <th className="py-3 px-3 w-10 text-center">#</th>
             <th className="py-3 px-3 w-[34%] text-left">Descrição</th>
@@ -268,8 +282,8 @@ export default function ItemsList(props: Props) {
           </tr>
         </thead>
 
-
-        <thead className="hidden dark:table-header-group bg-[#14121E] border-b border-[#1F1C2A]">
+        {/* HEADER DARK */}
+        <thead className="hidden dark:table-header-group sticky top-0 z-30 bg-[#14121E] border-b border-[#1F1C2A] shadow-md">
           <tr className="text-[#8F8BA0] text-[12px] font-semibold uppercase tracking-wide">
             <th className="py-4 px-3 w-10 text-center">#</th>
             <th className="py-4 px-3 w-[34%] text-left">Descrição</th>
@@ -282,6 +296,7 @@ export default function ItemsList(props: Props) {
           </tr>
         </thead>
 
+        {/* LISTA */}
         <tbody>
           {items.map((item, index) => (
             <ItemRow

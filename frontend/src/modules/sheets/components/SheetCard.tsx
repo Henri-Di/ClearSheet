@@ -39,7 +39,7 @@ export function SheetCard({
         bg-white dark:bg-[#14131A]
         border border-[#E6E1F7] dark:border-[#2C2B33]
         rounded-3xl p-6 shadow-sm
-        cursor-pointer overflow-visible
+        overflow-visible
         group transition-all
       "
       onMouseEnter={(e) => {
@@ -61,19 +61,19 @@ export function SheetCard({
         el.style.boxShadow = "";
       }}
     >
-      {/* TOOLTIP SUPERIOR */}
+
       <div
         className="
           absolute -top-5 left-1/2 -translate-x-1/2 
           opacity-0 group-hover:opacity-100 
-          transition z-20
+          transition z-20 pointer-events-none
         "
       >
         <div
           className="
             flex items-center gap-1 text-xs px-3 py-1 
-            bg-[#F4F1FF] dark:bg-dark-bg 
-            border border-[#E6E1F7] dark:border-dark-border 
+            bg-[#F4F1FF] dark:bg-[#1A1923]
+            border border-[#E6E1F7] dark:border-[#34333D]
             rounded-xl text-[#6C63FF] dark:text-gray-200 
             shadow-md
           "
@@ -82,25 +82,27 @@ export function SheetCard({
         </div>
       </div>
 
-      {/* LINK PRINCIPAL DO CARD (SEM OVERLAY) */}
+  
       <Link
         to={`/app/sheets/${sheet.id}`}
-        className="block w-full h-full relative z-10"
+        className="block w-full"
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
+
+            {/* Ícone */}
             <motion.div
               whileHover={{ rotate: -4, scale: 1.06 }}
               transition={{ type: "spring", stiffness: 300 }}
               className="
                 p-3 rounded-2xl border 
-                border-[#E6E1F7] dark:border-dark-border
-                shadow-sm bg-[#F8F7FF] dark:bg-white/10
+                border-[#E6E1F7] dark:border-[#34333D]
+                shadow-sm bg-[#F8F7FF] dark:bg-[#1E1D25]
               "
             >
               <FileSpreadsheet
                 size={28}
-                className="text-[#7B61FF] dark:text-[#9d8aff]"
+                className="text-[#7B61FF] dark:text-[#A99BFF]"
               />
             </motion.div>
 
@@ -108,8 +110,8 @@ export function SheetCard({
               <h3
                 className="
                   text-xl font-semibold 
-                  text-[#2F2F36] dark:text-gray-200
-                  group-hover:text-[#7B61FF] dark:group-hover:text-[#9d8aff]
+                  text-[#2F2F36] dark:text-white/90
+                  group-hover:text-[#7B61FF] dark:group-hover:text-[#A99BFF]
                   transition
                 "
               >
@@ -124,7 +126,10 @@ export function SheetCard({
 
                 {sheet.description && (
                   <span
-                    className="flex items-center gap-1 text-gray-500 dark:text-gray-300"
+                    className="
+                      flex items-center gap-1
+                      text-gray-500 dark:text-gray-300
+                    "
                     title={sheet.description}
                   >
                     <Info size={14} />
@@ -137,18 +142,22 @@ export function SheetCard({
             </div>
           </div>
         </div>
-
-        {/* BOXES */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
-          <InfoBox title="Saldo Inicial" value={initial} color="#9A84FF" animated />
-          <InfoBox title="Entradas" value={entradas} color="#28A745" animated />
-          <InfoBox title="Saídas" value={saidas} color="#E63946" animated />
-          <InfoBox title="Saldo Final" value={final} color="#9A84FF" animated />
-        </div>
       </Link>
 
-      {/* BOTÕES QUE NÃO DEVEM ACIONAR O LINK */}
+
+      <div
+        className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6"
+        onClick={(e) => e.stopPropagation()}   // <── impede navegação
+      >
+        <InfoBox title="Saldo Inicial" value={initial} color="#9A84FF" animated />
+        <InfoBox title="Entradas"       value={entradas} color="#28A745" animated />
+        <InfoBox title="Saídas"         value={saidas} color="#E63946" animated />
+        <InfoBox title="Saldo Final"    value={final} color="#9A84FF" animated />
+      </div>
+
+     
       <div className="absolute right-6 top-6 flex items-center gap-3 z-20">
+
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
@@ -159,11 +168,11 @@ export function SheetCard({
           }}
           className="
             px-3 py-1.5 rounded-2xl text-sm
-            text-[#7B61FF] dark:text-[#9d8aff]
-            border border-[#E6E1F7] dark:border-dark-border
+            text-[#7B61FF] dark:text-[#A99BFF]
+            border border-[#E6E1F7] dark:border-[#34333D]
             hover:bg-[#EFEAFF] dark:hover:bg-white/10
             transition flex items-center gap-1.5 
-            shadow-sm bg-white dark:bg-dark-card
+            shadow-sm bg-white dark:bg-[#1D1C22]
           "
         >
           <Pencil size={15} /> Editar
@@ -183,7 +192,7 @@ export function SheetCard({
             border border-red-200 dark:border-red-900
             hover:bg-red-50 dark:hover:bg-red-900/30
             transition flex items-center gap-1.5
-            shadow-sm bg-white dark:bg-dark-card
+            shadow-sm bg-white dark:bg-[#1D1C22]
           "
         >
           <Trash2 size={15} /> Excluir

@@ -21,6 +21,8 @@ interface Props {
 
 export function CreateSheetModal({ onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false);
+  const [hoverTip, setHoverTip] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -28,7 +30,6 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
     year: "",
     initial_balance: "",
   });
-  const [hoverTip, setHoverTip] = useState<string | null>(null);
 
   async function handleCreate() {
     if (loading) return;
@@ -45,14 +46,9 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
       };
 
       const res = await api.post("/sheets", payload);
-
-      // Aqui ajustamos para aceitar qualquer formato padrão do Laravel
       const data = res.data?.data ?? res.data;
 
-      // Se não houver data.id, então o backend realmente falhou
-      if (!data || !data.id) {
-        throw new Error("Resposta inesperada do servidor.");
-      }
+      if (!data || !data.id) throw new Error("Resposta inesperada.");
 
       onCreated(data);
 
@@ -68,9 +64,7 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
       let msg = "Erro ao criar planilha.";
 
       if (err?.response?.data?.errors) {
-        msg = Object.values(err.response.data.errors)
-          .flat()
-          .join("\n");
+        msg = Object.values(err.response.data.errors).flat().join("\n");
       } else if (err?.response?.data?.message) {
         msg = err.response.data.message;
       }
@@ -86,29 +80,31 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
     }
   }
 
+
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
         absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
-        bg-light-card dark:bg-dark-card
-        text-light-text dark:text-dark-text
-        border border-light-border dark:border-dark-border
-        shadow-md whitespace-nowrap animate-fadeIn
+        bg-white dark:bg-[#1E1D25]
+        text-[#2F2F36] dark:text-white/90
+        border border-gray-300 dark:border-white/20
+        shadow-lg whitespace-nowrap animate-fadeIn
       "
     >
       {text}
     </div>
   );
 
+
   const Label = ({ text, tipKey }: { text: string; tipKey: string }) => (
     <div className="flex items-center gap-1 relative mb-1">
-      <span className="text-sm font-semibold text-light-text dark:text-dark-text">
+      <span className="text-sm font-semibold text-[#2F2F36] dark:text-white/90">
         {text}
       </span>
 
       <HelpCircle
         size={15}
-        className="text-[#7B61FF] cursor-pointer"
+        className="text-[#7B61FF] dark:text-[#A99BFF] cursor-pointer"
         onMouseEnter={() => setHoverTip(tipKey)}
         onMouseLeave={() => setHoverTip(null)}
       />
@@ -119,13 +115,13 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
             tipKey === "name"
               ? "Escolha um nome claro para identificar a planilha."
               : tipKey === "description"
-              ? "Descrição opcional para organizar melhor seu controle."
+              ? "Descrição opcional para organização interna."
               : tipKey === "month"
-              ? "Informe o mês no formato numérico (1 a 12)."
+              ? "Informe o mês (1–12)."
               : tipKey === "year"
-              ? "Informe o ano da planilha, ex: 2025."
+              ? "Ano da planilha (ex: 2026)."
               : tipKey === "initial"
-              ? "Valor inicial da conta no início do mês."
+              ? "Saldo inicial do mês."
               : ""
           }
         />
@@ -133,44 +129,52 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
     </div>
   );
 
+
   return (
     <div
       className="
-        fixed inset-0 z-50 flex items-center justify-center animate-fadeIn
-        bg-black/40 dark:bg-black/60 backdrop-blur-sm
+        fixed inset-0 z-50 flex items-center justify-center
+        animate-fadeIn bg-black/45 dark:bg-black/60 backdrop-blur-sm
       "
     >
       <div
         className="
           w-[95%] max-w-xl max-h-[90vh] overflow-y-auto rounded-[32px] p-8 relative
-          bg-gradient-to-br from-light-card/90 to-light-card/70
-          dark:bg-gradient-to-br dark:from-dark-card/90 dark:to-dark-card/70
+          shadow-xl animate-slideUp
 
-          border border-light-border/60 dark:border-dark-border/40
-          shadow-xl backdrop-blur-xl animate-slideUp
+          bg-gradient-to-br from-white/90 to-white/70
+          dark:bg-gradient-to-br dark:from-[#1A1923]/90 dark:to-[#1A1923]/70
+
+          border border-gray-200/60 dark:border-white/15
+          backdrop-blur-xl
         "
       >
-        {/* HEADER */}
+
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
+
             <div
               className="
-                p-3 rounded-2xl shadow-sm border
-                bg-pastel-lilac dark:bg-dark-card2
-                border-light-border dark:border-dark-border
+                p-3 rounded-2xl border shadow-sm
+                bg-[#F5F2FF] dark:bg-[#2A2733]
+                border-gray-200 dark:border-white/15
               "
             >
-              <FileSpreadsheet size={24} className="text-[#7B61FF]" />
+              <FileSpreadsheet
+                size={24}
+                className="text-[#7B61FF] dark:text-[#A99BFF]"
+              />
             </div>
 
             <div>
-              <h2 className="text-2xl font-semibold text-light-text dark:text-dark-text">
+              <h2 className="text-2xl font-semibold text-[#2F2F36] dark:text-white/90">
                 Criar nova planilha
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Preencha as informações para criar sua nova planilha.
               </p>
             </div>
+
           </div>
 
           <button
@@ -186,8 +190,9 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
           </button>
         </div>
 
-        {/* FORM */}
         <div className="space-y-7">
+
+      
           <div>
             <Label text="Nome" tipKey="name" />
             <Input
@@ -200,6 +205,7 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
             />
           </div>
 
+      
           <div>
             <Label text="Descrição" tipKey="description" />
             <Textarea
@@ -239,6 +245,7 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
             </div>
           </div>
 
+         
           <div>
             <Label text="Saldo Inicial" tipKey="initial" />
             <Input
@@ -246,13 +253,13 @@ export function CreateSheetModal({ onClose, onCreated }: Props) {
               type="number"
               value={form.initial_balance}
               disabled={loading}
-              icon={<Coins size={16} className="text-[#7B61FF]" />}
+              icon={<Coins size={16} className="text-[#7B61FF] dark:text-[#A99BFF]" />}
               placeholder="Ex: 0"
               onChange={(v) => setForm({ ...form, initial_balance: v })}
             />
           </div>
 
-          {/* BUTTON */}
+      
           <button
             onClick={handleCreate}
             disabled={loading}

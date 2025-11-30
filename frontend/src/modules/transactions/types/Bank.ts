@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import type { Transaction } from "./Transaction";
 
 export interface Bank {
+  [x: string]: any;
   // Dados básicos vindos da API
   id: number;
   name: string;

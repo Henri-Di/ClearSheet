@@ -23,13 +23,13 @@ export function InfoBox({
 
   return (
     <motion.div
-      whileHover={{ scale: 1.015 }}
-      transition={{ duration: 0.25 }}
+      whileHover={{ scale: 1.018 }}
+      transition={{ duration: 0.22 }}
       className="
-        bg-[#F5F4FA] dark:bg-dark-card 
-        border border-[#E1E0EB] dark:border-dark-border
-        rounded-3xl p-6 shadow-sm relative 
-        transition-all
+        relative rounded-3xl p-6 shadow-sm transition-all
+
+        bg-[#F5F4FA] dark:bg-[#1E1D25]
+        border border-[#E1E0EB] dark:border-white/15
       "
     >
 
@@ -40,17 +40,19 @@ export function InfoBox({
       >
         <HelpCircle
           size={18}
-          className="text-[#444] dark:text-gray-300"
+          className="text-gray-600 dark:text-gray-300"
         />
 
         {showTip && tooltip && (
           <div
             className="
-              absolute top-6 right-0 z-40
-              px-3 py-1 rounded-lg shadow-lg whitespace-nowrap
-              bg-black/80 text-white 
-              dark:bg-white/10 dark:text-gray-100
-              text-[11px]
+              absolute top-6 right-0 z-40 px-3 py-1 rounded-lg shadow-lg
+              text-[11px] whitespace-nowrap
+
+              bg-white dark:bg-[#2A2733]
+              text-[#2F2F36] dark:text-white/90
+              border border-gray-200 dark:border-white/15
+              animate-fadeIn
             "
           >
             {tooltip}
@@ -58,11 +60,12 @@ export function InfoBox({
         )}
       </div>
 
+
       <div className="flex justify-between items-center">
         <h3
           className="
-            text-sm font-semibold 
-            text-[#222] dark:text-gray-200
+            text-sm font-semibold tracking-wide
+            text-[#2F2F36] dark:text-gray-200
           "
         >
           {title}
@@ -70,9 +73,8 @@ export function InfoBox({
 
         <button
           className="
-            p-1.5 rounded-xl 
+            p-1.5 rounded-xl transition-all
             hover:bg-black/5 dark:hover:bg-white/10
-            transition
           "
           onClick={() => setHidden(!hidden)}
         >
@@ -84,7 +86,8 @@ export function InfoBox({
         </button>
       </div>
 
-      <div className="mt-4">
+
+      <div className="mt-4 min-h-[38px]">
         {animated ? (
           <AnimatePresence mode="popLayout">
             <motion.p
@@ -92,9 +95,9 @@ export function InfoBox({
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.22 }}
               className="
-                text-3xl font-extrabold 
+                text-3xl font-extrabold
                 text-[#000] dark:text-gray-100
               "
             >
@@ -104,7 +107,7 @@ export function InfoBox({
         ) : (
           <p
             className="
-              text-3xl font-extrabold 
+              text-3xl font-extrabold
               text-[#000] dark:text-gray-100
             "
           >
@@ -113,9 +116,9 @@ export function InfoBox({
         )}
       </div>
 
-
+    
       <div
-        className="h-[4px] rounded-full mt-5 opacity-70"
+        className="h-[4px] rounded-full mt-6 opacity-80 dark:opacity-60"
         style={{ background: color }}
       />
     </motion.div>
