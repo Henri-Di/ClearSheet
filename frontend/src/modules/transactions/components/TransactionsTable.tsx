@@ -1,19 +1,16 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
 import {
   ArrowDownCircle,
   ArrowUpCircle,
   Receipt,
   Landmark,
   CalendarDays,
-  MoreVertical,
-  Pencil,
-  Trash2,
 } from "lucide-react";
 
 import { formatCurrency } from "../utils/currency";
 import { EmptyState } from "./EmptyState";
-
 
 function CorporateLoader() {
   return (
@@ -39,18 +36,8 @@ function CorporateLoader() {
   );
 }
 
-export function TransactionsTable({
-  transactions,
-  loading,
-  onEdit,
-  onDelete,
-}: any) {
+export function TransactionsTable({ transactions, loading }: any) {
   const [hoverColumn, setHoverColumn] = useState<string | null>(null);
-  const [openMenu, setOpenMenu] = useState<number | null>(null);
-
-  const toggleMenu = (id: number) => {
-    setOpenMenu((prev) => (prev === id ? null : id));
-  };
 
   if (loading) return <CorporateLoader />;
 
@@ -65,6 +52,8 @@ export function TransactionsTable({
   return (
     <div className="overflow-x-auto mt-10 text-inherit">
       <table className="w-full text-[15px] border-separate border-spacing-y-3">
+        
+      
         <thead
           className="
             sticky top-0 z-20 
@@ -73,7 +62,7 @@ export function TransactionsTable({
           "
         >
           <tr className="text-left text-gray-700 dark:text-gray-200 select-none">
-            {["Descrição", "Categoria", "Banco", "Data", "Valor", ""].map(
+            {["Descrição", "Categoria", "Banco", "Data", "Valor"].map(
               (label, idx) => (
                 <th
                   key={idx}
@@ -97,6 +86,7 @@ export function TransactionsTable({
           </tr>
         </thead>
 
+   
         <tbody className="text-gray-800 dark:text-gray-100">
           {transactions.map((t: any, i: number) => (
             <motion.tr
@@ -111,7 +101,8 @@ export function TransactionsTable({
                 transition-all hover:shadow-lg hover:-translate-y-[1px]
               "
             >
-     
+
+      
               <td
                 className={`px-5 py-5 transition-colors ${
                   hoverColumn === "Descrição"
@@ -153,7 +144,7 @@ export function TransactionsTable({
                 </div>
               </td>
 
-    
+         
               <td
                 className={`px-5 py-5 transition ${
                   hoverColumn === "Categoria"
@@ -167,7 +158,6 @@ export function TransactionsTable({
                 </div>
               </td>
 
-     
               <td
                 className={`px-5 py-5 transition ${
                   hoverColumn === "Banco"
@@ -230,60 +220,6 @@ export function TransactionsTable({
                 </div>
               </td>
 
-              <td className="w-[70px] pr-5 text-right relative">
-                <MoreVertical
-                  size={22}
-                  className="text-gray-500 dark:text-gray-300 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition"
-                  onClick={() => toggleMenu(t.id)}
-                />
-
-                <AnimatePresence>
-                  {openMenu === t.id && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="
-                        absolute right-0 top-8
-                        bg-white dark:bg-[#2a2435]
-                        border border-[#ECE9FA] dark:border-[#3a2e52]
-                        rounded-xl shadow-xl w-36
-                        z-50 overflow-hidden backdrop-blur-xl
-                      "
-                    >
-                      <button
-                        className="
-                          w-full flex items-center gap-2 px-4 py-2.5
-                          text-left hover:bg-gray-100 dark:hover:bg-[#3a3347]
-                          text-gray-700 dark:text-gray-200 text-[15px]
-                        "
-                        onClick={() => {
-                          setOpenMenu(null);
-                          onEdit?.(t);
-                        }}
-                      >
-                        <Pencil size={18} />
-                        Editar
-                      </button>
-
-                      <button
-                        className="
-                          w-full flex items-center gap-2 px-4 py-2.5
-                          text-left hover:bg-red-50 dark:hover:bg-[#4a1e27]
-                          text-red-600 dark:text-red-400 text-[15px]
-                        "
-                        onClick={() => {
-                          setOpenMenu(null);
-                          onDelete?.(t);
-                        }}
-                      >
-                        <Trash2 size={18} />
-                        Excluir
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </td>
             </motion.tr>
           ))}
         </tbody>

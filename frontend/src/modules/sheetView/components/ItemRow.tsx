@@ -26,6 +26,9 @@ import type { JSX } from "react/jsx-runtime";
 import { useState } from "react";
 
 
+/* ----------------------------------------------------------
+    FIX: Converte para ISO curto e preserva integridade
+---------------------------------------------------------- */
 const normalizeDate = (v: any): string | null =>
   v ? String(v).slice(0, 10) : null;
 
@@ -44,16 +47,20 @@ const isItemOverdue = (item: UnifiedItem): boolean => {
 };
 
 
+/* ----------------------------------------------------------
+    Tooltip com contraste reforçado
+---------------------------------------------------------- */
 function Tooltip({ text }: { text: string }) {
   return (
     <div
       className="
-        absolute top-full left-0 mt-1 px-3 py-2 
-        rounded-xl text-xs shadow-xl z-[9999]
-        bg-[#F4F1FF] text-[#2F2F36]
-        dark:bg-[#2a2435] dark:text-gray-200
-        border border-[#E6E1F7] dark:border-[#3a2e52]
-        whitespace-nowrap backdrop-blur-xl
+        absolute top-full left-0 mt-1 px-3 py-2 rounded-xl text-xs z-[9999]
+        backdrop-blur-xl shadow-lg border whitespace-nowrap
+
+        bg-[#FFFFFFF0] text-[#1a1a1a] border-[#E6E1F7]
+        dark:bg-[#1A1523F0] dark:text-gray-100 dark:border-[#3a2e52]
+
+        transition-colors
       "
     >
       {text}
@@ -62,6 +69,9 @@ function Tooltip({ text }: { text: string }) {
 }
 
 
+/* ----------------------------------------------------------
+    ITEM ROW
+---------------------------------------------------------- */
 interface Props {
   item: UnifiedItem;
   index: number;
@@ -88,6 +98,9 @@ interface Props {
 }
 
 
+/* ----------------------------------------------------------
+    COMPONENTE PRINCIPAL
+---------------------------------------------------------- */
 export function ItemRow({
   item,
   index,
@@ -105,52 +118,78 @@ export function ItemRow({
   const isPaid = !!item.paid_at;
   const isUpdating = updatingInlineKey === `${item.origin}-${item.id}`;
 
+
+  /* ------------------------------------------------------
+      SPINNER INLINE — não quebra padding/margins
+  ------------------------------------------------------ */
   const Spinner = () => (
-    <div className="w-7 h-7 border-2 border-[#9d8aff] border-t-transparent rounded-full animate-spin"></div>
+    <div className="flex items-center justify-center">
+      <div
+        className="
+          w-7 h-7 border-[3px]
+          border-[#9d8aff] border-t-transparent
+          rounded-full animate-spin
+        "
+      ></div>
+    </div>
   );
 
+
+  /* ------------------------------------------------------
+      ÍCONE DE CATEGORIA
+  ------------------------------------------------------ */
   const CatIcon =
     item.category?.icon
       ? getCategoryIconByCode(item.category.icon)
       : getCategoryIconComponent(item.category?.name || "");
 
-  
+
+  /* ------------------------------------------------------
+      BADGES DE STATUS COM CONTRASTE OTIMIZADO
+  ------------------------------------------------------ */
   let badgeBg = "";
   let badgeText = "";
   let badgeIcon: JSX.Element | null = null;
 
   if (isIncome) {
     badgeBg =
-      "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-100 dark:border-emerald-700";
+      "bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm dark:bg-emerald-900/40 dark:text-emerald-100 dark:border-emerald-700";
     badgeText = "Receita";
     badgeIcon = <TrendingUp size={14} className="mr-1" />;
   } else if (isPaid) {
     badgeBg =
-      "bg-emerald-200 text-emerald-800 border-emerald-300 dark:bg-emerald-800/40 dark:text-emerald-100 dark:border-emerald-700";
+      "bg-emerald-200 text-emerald-900 border border-emerald-300 shadow-sm dark:bg-emerald-800/40 dark:text-emerald-100 dark:border-emerald-700";
     badgeText = "Pago";
     badgeIcon = <CheckCircle2 size={14} className="mr-1" />;
   } else if (overdue) {
     badgeBg =
-      "bg-red-200 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-100 dark:border-red-700";
+      "bg-red-200 text-red-900 border border-red-300 shadow-sm dark:bg-red-900/40 dark:text-red-100 dark:border-red-700";
     badgeText = "Atrasado";
     badgeIcon = <AlertTriangle size={14} className="mr-1" />;
   } else {
     badgeBg =
-      "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-200 dark:border-red-700";
+      "bg-red-100 text-red-700 border border-red-300 shadow-sm dark:bg-red-900/30 dark:text-red-200 dark:border-red-700";
     badgeText = "Despesa";
     badgeIcon = <TrendingDown size={14} className="mr-1" />;
   }
 
 
+  /* ------------------------------------------------------
+      ROW BACKGROUND (OTIMIZADO L/D)
+  ------------------------------------------------------ */
   const rowBg =
     isPaid
       ? "bg-emerald-50/40 dark:bg-emerald-900/10"
       : overdue && !isIncome
-      ? "bg-red-50/40 dark:bg-red-900/25"
+      ? "bg-red-50/45 dark:bg-red-900/20"
       : isIncome
-      ? "bg-emerald-50/20 dark:bg-emerald-900/15"
-      : "bg-red-50/20 dark:bg-red-900/15";
+      ? "bg-emerald-50/25 dark:bg-emerald-900/15"
+      : "bg-red-50/25 dark:bg-red-900/15";
 
+
+  /* ------------------------------------------------------
+      SALVAR INLINE
+  ------------------------------------------------------ */
   const handleInlineSave = async (
     field: EditableItemField,
     value: any,
@@ -158,6 +197,7 @@ export function ItemRow({
   ) => {
     try {
       await updateInline(item, field, value);
+
       Swal.fire({
         icon: "success",
         title: msg,
@@ -175,6 +215,10 @@ export function ItemRow({
     }
   };
 
+
+  /* ------------------------------------------------------
+      TOOLTIPS (já corrigidos acima)
+  ------------------------------------------------------ */
   const [tipDesc, setTipDesc] = useState(false);
   const [tipCat, setTipCat] = useState(false);
   const [tipVal, setTipVal] = useState(false);
@@ -183,21 +227,30 @@ export function ItemRow({
   const [tipBank, setTipBank] = useState(false);
   const [tipActions, setTipActions] = useState(false);
 
+
+  /* ------------------------------------------------------
+      RENDER
+  ------------------------------------------------------ */
   return (
     <tr
       className={`
         border-b last:border-none rounded-3xl relative transition-all
         ${rowBg}
-        hover:bg-[#F7F3FF]/50 dark:hover:bg-white/5
-        border-gray-200 dark:border-[#322b44]
+
+        hover:bg-[#F4F0FF]/60 dark:hover:bg-[#ffffff0a]
+
+        border-gray-200 dark:border-[#332b46]
       `}
     >
-   
+
+      {/* OVERLAY DE LOADING — NÃO MUDA TAMANHO DA ROW */}
       {isUpdating && (
         <div
           className="
-            absolute inset-0 bg-white/60 dark:bg-black/30 backdrop-blur-sm 
-            flex items-center justify-center z-[50]
+            absolute inset-0 
+            bg-white/55 dark:bg-black/30 backdrop-blur-sm
+            flex items-center justify-center 
+            z-50 rounded-3xl
           "
         >
           <Spinner />
@@ -205,11 +258,23 @@ export function ItemRow({
       )}
 
 
-      <td className="py-6 px-4 text-center font-semibold text-gray-700 dark:text-gray-200 w-10 border-r border-gray-200 dark:border-[#322b44]">
+      {/* ----------------------------------------------------------
+          COLUNA: ÍNDICE
+      ---------------------------------------------------------- */}
+      <td
+        className="
+          py-6 px-4 text-center font-semibold
+          text-gray-700 dark:text-gray-200
+          w-10 border-r border-gray-200 dark:border-[#322b44]
+        "
+      >
         {index + 1}
       </td>
 
- 
+
+      {/* ----------------------------------------------------------
+          COLUNA: DESCRIÇÃO
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[34%] border-r border-gray-200 dark:border-[#322b44] relative">
         <div
           className="absolute -top-1 left-1 cursor-pointer"
@@ -223,12 +288,10 @@ export function ItemRow({
         </div>
 
         <div className="flex flex-col gap-3">
-       
+
           <span
-            className={`
-              inline-flex items-center px-4 py-1 rounded-full 
-              text-xs font-semibold border shadow-sm w-fit ${badgeBg}
-            `}
+            className={`inline-flex items-center px-4 py-1 rounded-full
+              text-xs font-semibold w-fit ${badgeBg}`}
           >
             {badgeIcon}
             {badgeText}
@@ -239,11 +302,17 @@ export function ItemRow({
             disabled={isUpdating}
             value={item.description ?? ""}
             className="
-              bg-white dark:bg-[#1d1a27] border border-[#E6E1F7] 
-              dark:border-[#322b44] rounded-2xl px-4 py-3
-              w-full outline-none text-sm shadow-sm 
-              text-gray-700 dark:text-gray-200 
-              focus:ring-2 focus:ring-[#B7A4FF] transition-all
+              bg-white dark:bg-[#1d1a27]
+              border border-[#E6E1F7] dark:border-[#322b44]
+
+              rounded-2xl px-4 py-3 w-full outline-none
+              text-sm shadow-sm font-medium
+
+              text-gray-700 dark:text-gray-200
+
+              focus:ring-2 focus:ring-[#B7A4FF]
+
+              transition-all
             "
             onChange={(e) =>
               updateLocalItemField(item, "description", e.target.value)
@@ -253,8 +322,12 @@ export function ItemRow({
         </div>
       </td>
 
-   
+
+      {/* ----------------------------------------------------------
+          COLUNA: CATEGORIA
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[20%] border-r border-gray-200 dark:border-[#322b44] relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipCat(true)}
@@ -265,24 +338,34 @@ export function ItemRow({
         </div>
 
         <div className="flex items-center gap-3 w-full">
-          <div className="
-            w-10 h-10 rounded-2xl border border-[#E6E1F7] dark:border-[#322b44]
-            bg-[#F8F7FF] dark:bg-[#2a2435] shadow-sm flex items-center justify-center 
-          ">
+          <div
+            className="
+              w-10 h-10 rounded-2xl 
+              border border-[#E6E1F7] dark:border-[#322b44]
+              bg-[#F8F7FF] dark:bg-[#2a2435]
+              shadow-sm flex items-center justify-center
+            "
+          >
             <CatIcon size={20} className="text-amber-700 dark:text-amber-200" />
           </div>
 
           <select
             disabled={isUpdating}
             value={item.category_id ?? ""}
+
             className="
               w-full bg-white dark:bg-[#1d1a27]
-              border border-[#E6E1F7] dark:border-[#322b44] 
-              text-sm rounded-2xl px-4 py-3
-              text-gray-700 dark:text-gray-200 
-              shadow-sm outline-none cursor-pointer
-              focus:ring-2 focus:ring-[#B7A4FF] transition
+              border border-[#E6E1F7] dark:border-[#322b44]
+
+              rounded-2xl px-4 py-3
+              text-sm shadow-sm outline-none cursor-pointer
+
+              text-gray-700 dark:text-gray-200
+
+              focus:ring-2 focus:ring-[#B7A4FF]
+              transition
             "
+
             onChange={(e) => {
               const val = e.target.value ? Number(e.target.value) : null;
               updateLocalItemField(item, "category_id", val);
@@ -300,7 +383,11 @@ export function ItemRow({
       </td>
 
 
+      {/* ----------------------------------------------------------
+          COLUNA: VALOR
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[12%] border-r border-gray-200 dark:border-[#322b44] relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipVal(true)}
@@ -325,11 +412,17 @@ export function ItemRow({
             disabled={isUpdating}
             value={item.value}
             className="
-              bg-white dark:bg-[#1d1a27] border border-[#E6E1F7] dark:border-[#322b44] 
-              rounded-2xl px-4 py-3 w-full max-w-[90px]
+              bg-white dark:bg-[#1d1a27]
+              border border-[#E6E1F7] dark:border-[#322b44]
+
+              rounded-2xl px-4 py-3
               text-gray-700 dark:text-gray-200 
-              outline-none text-sm shadow-sm font-semibold
-              focus:ring-2 focus:ring-[#B7A4FF] transition-all
+              shadow-sm outline-none text-sm font-semibold
+              max-w-[90px]
+
+              focus:ring-2 focus:ring-[#B7A4FF]
+
+              transition-all
             "
             onChange={(e) =>
               updateLocalItemField(item, "value", Number(e.target.value) || 0)
@@ -342,16 +435,18 @@ export function ItemRow({
       </td>
 
 
+      {/* ----------------------------------------------------------
+          COLUNA: DATA / VENCIMENTO
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[18%] border-r border-gray-200 dark:border-[#322b44] text-center relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipDate(true)}
           onMouseLeave={() => setTipDate(false)}
         >
           <HelpCircle size={16} className="text-gray-500 dark:text-gray-300" />
-          {tipDate && (
-            <Tooltip text="Selecione a data. Salva automaticamente." />
-          )}
+          {tipDate && <Tooltip text="Selecione a data. Salva automaticamente." />}
         </div>
 
         <div className="flex flex-col items-center gap-1">
@@ -364,8 +459,11 @@ export function ItemRow({
               flex items-center gap-2
               bg-white dark:bg-[#1d1a27]
               border border-[#E6E1F7] dark:border-[#322b44]
-              rounded-2xl px-4 py-3 shadow-sm transition-all
-              hover:shadow-lg hover:border-[#C9B8FF] 
+
+              rounded-2xl px-4 py-3 shadow-sm
+              transition-all
+
+              hover:shadow-lg hover:border-[#C9B8FF]
               dark:hover:border-[#9d8aff]
             "
           >
@@ -374,7 +472,11 @@ export function ItemRow({
             <input
               type="date"
               disabled={isUpdating}
-              className="bg-transparent dark:text-gray-200 outline-none flex-1"
+              className="
+                bg-transparent
+                text-gray-700 dark:text-gray-200
+                outline-none flex-1
+              "
               value={normalizeDate(item.date) ?? ""}
               onChange={(e) =>
                 updateLocalItemField(item, "date", normalizeDate(e.target.value))
@@ -401,7 +503,11 @@ export function ItemRow({
       </td>
 
 
+      {/* ----------------------------------------------------------
+          COLUNA: PAGAMENTO
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[10%] border-r border-gray-200 dark:border-[#322b44] text-center relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipPay(true)}
@@ -411,6 +517,7 @@ export function ItemRow({
           {tipPay && <Tooltip text="Marcar ou remover pagamento." />}
         </div>
 
+        {/* botão PAGAR */}
         {!isIncome && !isPaid && (
           <button
             disabled={isUpdating}
@@ -432,6 +539,7 @@ export function ItemRow({
           </button>
         )}
 
+        {/* botão PAGAMENTO JÁ FEITO */}
         {!isIncome && isPaid && (
           <button
             disabled={isUpdating}
@@ -450,13 +558,18 @@ export function ItemRow({
           </button>
         )}
 
+        {/* receita nunca tem pagamento */}
         {isIncome && (
           <div className="text-xs text-gray-500 dark:text-gray-400 italic">—</div>
         )}
       </td>
 
-   
+
+      {/* ----------------------------------------------------------
+          COLUNA: BANCO
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[16%] border-r border-gray-200 dark:border-[#322b44] relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipBank(true)}
@@ -471,8 +584,8 @@ export function ItemRow({
             className="
               w-10 h-10 rounded-2xl 
               border border-[#E6E1F7] dark:border-[#322b44]
-              bg-[#F8F7FF] dark:bg-[#2a2435] shadow-sm 
-              flex items-center justify-center
+              bg-[#F8F7FF] dark:bg-[#2a2435]
+              shadow-sm flex items-center justify-center
             "
           >
             <Landmark size={20} className="text-indigo-600 dark:text-indigo-300" />
@@ -481,13 +594,19 @@ export function ItemRow({
           <select
             disabled={isUpdating}
             value={item.bank_id ?? ""}
+
             className="
               bg-white dark:bg-[#1d1a27]
-              border border-[#E6E1F7] dark:border-[#322b44] 
-              rounded-2xl px-4 py-3 text-sm shadow-sm 
-              text-gray-700 dark:text-gray-200 outline-none cursor-pointer
-              focus:ring-2 focus:ring-[#B7A4FF] transition
+              border border-[#E6E1F7] dark:border-[#322b44]
+
+              rounded-2xl px-4 py-3 text-sm shadow-sm
+              text-gray-700 dark:text-gray-200
+              outline-none cursor-pointer
+
+              focus:ring-2 focus:ring-[#B7A4FF]
+              transition
             "
+
             onChange={(e) => {
               const v = e.target.value ? Number(e.target.value) : null;
               updateLocalItemField(item, "bank_id", v);
@@ -505,7 +624,11 @@ export function ItemRow({
       </td>
 
 
+      {/* ----------------------------------------------------------
+          COLUNA: AÇÕES
+      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-36 text-center relative">
+
         <div
           className="absolute -top-1 left-1 cursor-pointer"
           onMouseEnter={() => setTipActions(true)}
@@ -517,7 +640,7 @@ export function ItemRow({
 
         <div className="flex items-center gap-5 justify-center">
 
-
+          {/* editar */}
           <button
             disabled={isUpdating}
             className="
@@ -526,7 +649,7 @@ export function ItemRow({
               px-3 py-2 rounded-xl 
               border border-[#E6E1F7] dark:border-[#322b44]
               bg-white dark:bg-[#1d1a27] shadow-sm
-              hover:bg-[#EFEAFF] dark:hover:bg-white/10
+              hover:bg-[#EFEAFF] dark:hover:bg-[#ffffff0a]
               transition
             "
             onClick={() => openEditItemModal(item)}
@@ -535,7 +658,7 @@ export function ItemRow({
             Editar
           </button>
 
-
+          {/* excluir */}
           <button
             disabled={isUpdating}
             className="
@@ -559,6 +682,7 @@ export function ItemRow({
                 cancelButtonText: "Cancelar",
                 customClass: { popup: "swal-pastel-popup" },
               });
+
               if (confirm.isConfirmed) await deleteInline(item);
             }}
           >

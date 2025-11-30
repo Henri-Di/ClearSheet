@@ -1,18 +1,27 @@
-// modules/dashboard/panels/DashboardPanel.tsx
-
 import { useEffect, useState } from "react";
 import { api } from "../../../services/api";
 
-import { BarChart3, FileSpreadsheet, FolderTree, Receipt, Users } from "lucide-react";
+import {
+  BarChart3,
+  FileSpreadsheet,
+  FolderTree,
+  Receipt,
+  Users,
+} from "lucide-react";
 
 import { DashboardCard } from "../components/DashboardCard";
 import { ChartCard } from "../components/ChartCard";
+import { OverviewRow } from "../components/OverviewRow";
 
 import { MonthlyBarChart } from "../components/MonthlyBarChart";
 import { BalanceLineChart } from "../components/BalanceLineChart";
-import { CategoriesPieChart } from "../components/CategoriesPieChart";
+import { CategoriesPieChart2026 } from "../components/CategoriesPieChart";
 
-import type { MonthlyData, BalanceData, CategoryData } from "../types/dashboard";
+import type {
+  MonthlyData,
+  BalanceData,
+  CategoryData,
+} from "../types/dashboard";
 
 export default function DashboardPanel() {
   const [loading, setLoading] = useState(true);
@@ -53,14 +62,16 @@ export default function DashboardPanel() {
       const balanceRaw = balanceRes.data.data ?? [];
       const categoriesRaw = categoriesRes.data.data ?? [];
 
+
       setMonthly(
         monthlyRaw.map((m: any) => ({
           month:
             m.month ??
             m.mes ??
-            m.label ??
             (m.date
-              ? new Date(m.date).toLocaleDateString("pt-BR", { month: "short" }).toUpperCase()
+              ? new Date(m.date).toLocaleDateString("pt-BR", {
+                  month: "short",
+                }).toUpperCase()
               : ""),
           income: Number(m.income ?? m.entradas ?? m.total_in ?? 0),
           expense: Number(m.expense ?? m.saidas ?? m.total_out ?? 0),
@@ -73,7 +84,9 @@ export default function DashboardPanel() {
             b.month ??
             b.mes ??
             (b.date
-              ? new Date(b.date).toLocaleDateString("pt-BR", { month: "short" }).toUpperCase()
+              ? new Date(b.date).toLocaleDateString("pt-BR", {
+                  month: "short",
+                }).toUpperCase()
               : ""),
           balance: Number(b.balance ?? b.saldo ?? b.total ?? 0),
         }))
@@ -93,6 +106,8 @@ export default function DashboardPanel() {
   useEffect(() => {
     loadAll();
   }, []);
+
+
 
   if (loading) {
     return (
@@ -116,15 +131,35 @@ export default function DashboardPanel() {
     );
   }
 
+
+
+  const totalEntradas = monthly.reduce((t, m) => t + (m.income ?? 0), 0);
+  const totalSaidas = monthly.reduce((t, m) => t + (m.expense ?? 0), 0);
+  const saldoFinal = balances?.[balances.length - 1]?.balance ?? 0;
+  const economiaMedia =
+    balances.length > 1
+      ? (totalEntradas - totalSaidas) / balances.length
+      : totalEntradas - totalSaidas;
+
   return (
     <div className="animate-fadeIn space-y-14 pb-20">
 
+      {/* HEADER */}
       <div className="flex items-center gap-3">
         <BarChart3 size={32} className="text-primary" />
         <h1 className="font-display text-4xl font-semibold tracking-tight text-[#2F2F36] dark:text-white">
           Painel de Controle
         </h1>
       </div>
+
+
+      <OverviewRow
+        saldo={saldoFinal}
+        entradas={totalEntradas}
+        saidas={totalSaidas}
+        economia={economiaMedia}
+      />
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <DashboardCard
@@ -156,6 +191,7 @@ export default function DashboardPanel() {
         />
       </div>
 
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
         <ChartCard title="Entradas e Saídas por Mês">
           <MonthlyBarChart data={monthly} />
@@ -166,8 +202,9 @@ export default function DashboardPanel() {
         </ChartCard>
       </div>
 
+    
       <ChartCard title="Distribuição por Categoria">
-        <CategoriesPieChart data={categoriesGraph} />
+        <CategoriesPieChart2026 data={categoriesGraph} />
       </ChartCard>
     </div>
   );

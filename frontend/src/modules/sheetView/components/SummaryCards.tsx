@@ -1,4 +1,4 @@
-import { useMemo, useState, type JSX } from "react";
+import { useMemo, useState, useEffect, type JSX } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 
+/* --------------------------------------------------------
+    NORMALIZERS E UTILITÁRIOS (SEM ALTERAÇÕES)
+-------------------------------------------------------- */
 
 function normalizeName(str: any): string {
   if (!str || typeof str !== "string") return "";
@@ -49,7 +52,6 @@ function isOverdue(dateStr: string) {
   return d < today;
 }
 
-
 function Tooltip({ text }: { text: string }) {
   return (
     <div
@@ -64,7 +66,6 @@ function Tooltip({ text }: { text: string }) {
     </div>
   );
 }
-
 
 function BankCardSkeleton() {
   return (
@@ -84,6 +85,9 @@ function BankCardSkeleton() {
   );
 }
 
+/* --------------------------------------------------------
+    AGRUPADOR AUTOMÁTICO PARA O GRÁFICO
+-------------------------------------------------------- */
 
 function groupAuto(transactions: any[]) {
   if (!transactions?.length) return [];
@@ -125,6 +129,9 @@ function groupAuto(transactions: any[]) {
   return Object.values(groups);
 }
 
+/* --------------------------------------------------------
+    SPARKLINE DUAL — CONTRASTE AJUSTADO
+-------------------------------------------------------- */
 
 function SparklineDual({ transactions }: { transactions: any[] }) {
   const grouped = useMemo(() => groupAuto(transactions), [transactions]);
@@ -155,9 +162,10 @@ function SparklineDual({ transactions }: { transactions: any[] }) {
   const ptsOut = toPoints(valuesOut);
 
   const [hoverX, setHoverX] = useState<number | null>(null);
-  const [hoverVal, setHoverVal] = useState<{ type: string; value: number } | null>(
-    null
-  );
+  const [hoverVal, setHoverVal] = useState<{
+    type: string;
+    value: number;
+  } | null>(null);
 
   const handleMove = (e: any) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -232,11 +240,11 @@ function SparklineDual({ transactions }: { transactions: any[] }) {
         animate={{ opacity: 1, y: 0 }}
         className="flex gap-4 text-xs mt-1"
       >
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
           <span className="w-2 h-2 rounded-full bg-green-600/70" />
           Entradas
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
           <span className="w-2 h-2 rounded-full bg-red-500/70" />
           Saídas
         </div>
@@ -244,6 +252,10 @@ function SparklineDual({ transactions }: { transactions: any[] }) {
     </div>
   );
 }
+
+/* --------------------------------------------------------
+    ÍCONES — GLASS CIRCLE
+-------------------------------------------------------- */
 
 const GlassCircle = (content: JSX.Element, tint: string) => (
   <svg width="48" height="48" viewBox="0 0 48 48">
@@ -261,150 +273,253 @@ const GlassCircle = (content: JSX.Element, tint: string) => (
   </svg>
 );
 
-const BankIcons: Record<string, JSX.Element> = {
-  nubank: GlassCircle(
-    <path
-      d="M18 16c-3 0-4.5 2.5-4.5 8v8c0 5.5 1.5 8 4.5 8s4.5-2.5 4.5-8v-8c0-5.5-1.5-8-4.5-8zm12 0c-3 0-4.5 2.5-4.5 8v8c0 5.5 1.5 8 4.5 8s4.5-2.5 4.5-8v-8c0-5.5-1.5-8-4.5-8z"
-      fill="#A26BFF"
-      fillOpacity="0.85"
-    />,
-    "#A26BFF"
-  ),
-  inter: GlassCircle(
-    <text
-      x="20"
-      y="30"
-      fontSize="24"
-      fontFamily="Arial Black"
-      fill="#FF8A30"
-      fillOpacity="0.95"
-    >
-      i
-    </text>,
-    "#FF8A30"
-  ),
-  itau: GlassCircle(
-    <>
-      <rect
-        x="16"
-        y="16"
-        width="20"
-        height="20"
-        rx="6"
-        fill="#FF8F00"
-        fillOpacity="0.75"
-      />
-      <text
-        x="18"
-        y="29"
-        fontSize="13"
-        fontFamily="Arial Black"
-        fill="#002A7A"
-        fillOpacity="0.85"
-      >
-        Itaú
-      </text>
-    </>,
-    "#FF8F00"
-  ),
-  bradesco: GlassCircle(
-    <path
-      d="M24 15c-6 0-10 4-10 10v8c0 5 3 8 8 8h4c5 0 8-3 8-8v-8c0-6-4-10-10-10z"
-      fill="#E11D48"
-      fillOpacity="0.85"
-    />,
-    "#E11D48"
-  ),
-  santander: GlassCircle(
-    <path d="M24 14c-5 7 5 9 0 15 9-4 5-14 0-15z" fill="#DC2626" />,
-    "#DC2626"
-  ),
-  caixa: GlassCircle(
-    <>
-      <path d="M18 18l6 6-6 6" stroke="#2563EB" strokeWidth="4" />
-      <path d="M26 18l6 6-6 6" stroke="#F97316" strokeWidth="4" />
-    </>,
-    "#2563EB"
-  ),
-  brasil: GlassCircle(
-    <>
-      <path d="M16 24l16-10M16 24l16 10" stroke="#0E3A78" strokeWidth="4" />
-    </>,
-    "#FBBF24"
-  ),
-  neon: GlassCircle(
-    <circle
-      cx="24"
-      cy="24"
-      r="10"
-      stroke="#0EA5E9"
-      strokeWidth="5"
-      fill="none"
-    />,
-    "#0EA5E9"
-  ),
-  "mercado pago": GlassCircle(
-    <>
-      <ellipse cx="24" cy="20" rx="12" ry="7" fill="#38BDF8" />
-      <path d="M18 20c3 4 7 4 10 0" stroke="#075985" strokeWidth="3" />
-    </>,
-    "#38BDF8"
-  ),
-  "c6 bank": GlassCircle(
-    <>
-      <circle cx="21" cy="26" r="8" fill="#1F2937" fillOpacity="0.45" />
-      <circle cx="30" cy="22" r="5" fill="#1F2937" fillOpacity="0.75" />
-    </>,
-    "#1F2937"
-  ),
-  original: GlassCircle(
-    <rect x="17" y="17" width="16" height="16" rx="6" fill="#10B981" />,
-    "#10B981"
-  ),
-  default: GlassCircle(
-    <circle cx="24" cy="24" r="10" fill="#6B7280" fillOpacity="0.5" />,
-    "#6B7280"
-  ),
+/* --------------------------------------------------------
+    CORES OFICIAIS DE 50 BANCOS
+-------------------------------------------------------- */
+
+const BankColorLight: Record<string, string> = {
+  "banco do brasil": "#F2D201",
+  "banco da amazonia": "#0C4B2D",
+  "banco do nordeste": "#8C1E5A",
+  caixa: "#1D5BBF",
+  bradesco: "#E11D48",
+  itau: "#FF8F00",
+  santander: "#DC2626",
+  banrisul: "#1E88E5",
+  banestes: "#185ABD",
+  brb: "#0033A0",
+  nubank: "#820AD1",
+  inter: "#FF7A00",
+  "c6 bank": "#1F2937",
+  original: "#10B981",
+  neon: "#0EA5E9",
+  next: "#00E676",
+  bs2: "#3B82F6",
+  pan: "#1565C0",
+  pagbank: "#14B8A6",
+  "mercado pago": "#38BDF8",
+  btg: "#1A3E6E",
+  xp: "#FACC15",
+  sofisa: "#0033A0",
+  daycoval: "#1B3A57",
+  abc: "#003366",
+  fibra: "#009966",
+  safra: "#5D4037",
+  pine: "#512DA8",
+  modal: "#0D47A1",
+  master: "#1A237E",
+  industrial: "#374151",
+  topazio: "#0EA5E9",
+  semear: "#7E22CE",
+  cetelem: "#0E9F6E",
+  volkswagen: "#003399",
+  toyota: "#CC0000",
+  honda: "#CC0000",
+  renault: "#FFD100",
+  psa: "#0A66C2",
+  sicoob: "#006241",
+  sicredi: "#1A8F2A",
+  stone: "#16A34A",
+  digio: "#1E3A8A",
+  acesso: "#4C1D95",
+  crefisa: "#0A3A87",
+  "western union": "#FFDC00",
+  citibank: "#003B70",
+  "jp morgan": "#0A3E59",
+  "bnp paribas": "#0BA16C",
+  "credit suisse": "#003B73",
 };
 
-const BankBg: Record<string, string> = {
-  nubank: "linear-gradient(135deg,#F0E6FF,#DCC5FF)",
-  inter: "linear-gradient(135deg,#FFF7ED,#FFEBD8)",
-  itau: "linear-gradient(135deg,#FFF5E6,#FFEED6)",
-  bradesco: "linear-gradient(135deg,#FFF0F3,#FFE3E7)",
-  santander: "linear-gradient(135deg,#FFE7E7,#FFD5D5)",
-  caixa: "linear-gradient(135deg,#EFF6FF,#FFF2E7)",
-  brasil: "linear-gradient(135deg,#FFF9D9,#FFF1A6)",
-  neon: "linear-gradient(135deg,#E0F7FF,#D4F4FF)",
-  "mercado pago": "linear-gradient(135deg,#E8F4FF,#DDEEFF)",
-  "c6 bank": "linear-gradient(135deg,#F3F4F6,#E5E7EB)",
-  original: "linear-gradient(135deg,#E8FFF5,#D7FFEC)",
-  default: "linear-gradient(135deg,#F1F1F5,#E6E6EB)",
-};
+/* --------------------------------------------------------
+    GRADIENTES LIGHT PROFISSIONAIS
+-------------------------------------------------------- */
+
+const BankBg: Record<string, string> = {};
+
+Object.keys(BankColorLight).forEach((k) => {
+  const c = BankColorLight[k];
+
+  BankBg[k] = `
+    linear-gradient(
+      135deg,
+      ${c}0A,
+      ${c}15
+    ),
+    linear-gradient(
+      135deg,
+      #ffffffee 0%,
+      #fafaffff 100%
+    )
+  `;
+});
+
+/* --------------------------------------------------------
+    GRADIENTES DARK (ALTO CONTRASTE)
+-------------------------------------------------------- */
+
+const BankBgDark: Record<string, string> = {};
+
+Object.keys(BankColorLight).forEach((k) => {
+  const c = BankColorLight[k];
+  BankBgDark[k] = `linear-gradient(135deg,${c}33,${c}77)`;
+});
+
+/* --------------------------------------------------------
+    ÍCONES DOS 50 BANCOS
+-------------------------------------------------------- */
+
+function makeLetterIcon(letter: string, color: string) {
+  return GlassCircle(
+    <text
+      x="17"
+      y="30"
+      fontSize="20"
+      fontFamily="Arial Black"
+      fill={color}
+      fillOpacity="0.90"
+      style={{ paintOrder: "stroke", stroke: "#000", strokeWidth: 0.6 }}
+    >
+      {letter}
+    </text>,
+    color
+  );
+}
+
+const BankIcons: Record<string, JSX.Element> = {};
+
+Object.keys(BankColorLight).forEach((k) => {
+  const color = BankColorLight[k];
+  const letter = k.charAt(0).toUpperCase();
+  BankIcons[k] = makeLetterIcon(letter, color);
+});
+
+/* --------------------------------------------------------
+    ALIAS
+-------------------------------------------------------- */
 
 const BankAlias: Record<string, string> = {
-  nubank: "nubank",
-  nu: "nubank",
-  "nu bank": "nubank",
-  inter: "inter",
-  itau: "itau",
+  "banco do brasil": "banco do brasil",
+  bb: "banco do brasil",
+
+  "banco da amazonia": "banco da amazonia",
+  amazonia: "banco da amazonia",
+
+  "banco do nordeste": "banco do nordeste",
+  bnb: "banco do nordeste",
+
   caixa: "caixa",
   cef: "caixa",
+  "caixa economica federal": "caixa",
+
+  bradesco: "bradesco",
+
+  itau: "itau",
+  "itaú": "itau",
+
   santander: "santander",
-  brasil: "brasil",
-  bb: "brasil",
-  neon: "neon",
-  "mercado pago": "mercado pago",
-  mercado: "mercado pago",
-  "c6": "c6 bank",
+
+  banrisul: "banrisul",
+
+  banestes: "banestes",
+
+  brb: "brb",
+  "banco de brasilia": "brb",
+
+  nubank: "nubank",
+  nu: "nubank",
+
+  inter: "inter",
+
+  "c6 bank": "c6 bank",
+  c6: "c6 bank",
+
   original: "original",
+
+  neon: "neon",
+
+  next: "next",
+
+  bs2: "bs2",
+
+  pan: "pan",
+
+  pagbank: "pagbank",
+  pagseguro: "pagbank",
+
+  "mercado pago": "mercado pago",
+
+  btg: "btg",
+
+  xp: "xp",
+
+  sofisa: "sofisa",
+
+  daycoval: "daycoval",
+
+  fibra: "fibra",
+
+  safra: "safra",
+
+  pine: "pine",
+
+  modal: "modal",
+
+  master: "master",
+
+  industrial: "industrial",
+
+  topazio: "topazio",
+
+  semear: "semear",
+
+  cetelem: "cetelem",
+
+  volkswagen: "volkswagen",
+
+  toyota: "toyota",
+
+  honda: "honda",
+
+  renault: "renault",
+
+  psa: "psa",
+
+  sicoob: "sicoob",
+
+  sicredi: "sicredi",
+
+  stone: "stone",
+
+  digio: "digio",
+
+  acesso: "acesso",
+
+  crefisa: "crefisa",
+
+  "western union": "western union",
+
+  citibank: "citibank",
+
+  "jp morgan": "jp morgan",
+
+  "bnp paribas": "bnp paribas",
+
+  "credit suisse": "credit suisse",
 };
 
+/* --------------------------------------------------------
+    RESOLVE KEY
+-------------------------------------------------------- */
 
 function resolveBankKey(rawName: string): string {
+  if (!rawName) return "default";
   const n = normalizeName(rawName);
   return BankAlias[n] || n || "default";
 }
+
+/* --------------------------------------------------------
+    AGRUPADOR BANCÁRIO
+-------------------------------------------------------- */
 
 function groupBanks(items: any[], dateStart: any, dateEnd: any) {
   const grouped: Record<string, any> = {};
@@ -426,15 +541,17 @@ function groupBanks(items: any[], dateStart: any, dateEnd: any) {
         income: 0,
         expense: 0,
         transactions: [],
-        icon: BankIcons[key] || BankIcons.default,
-        bg: BankBg[key] || BankBg.default,
+        icon: BankIcons[key] || BankIcons["banco do brasil"],
+        bg: BankBg[key] || BankBg["banco do brasil"],
+        bgDark: BankBgDark[key] || BankBgDark["banco do brasil"],
         type: "bank",
       };
     }
 
     grouped[key].ids.add(item.bank.id);
 
-    if (item.type === "income") grouped[key].income += safeNumber(item.value);
+    if (item.type === "income")
+      grouped[key].income += safeNumber(item.value);
     else grouped[key].expense += safeNumber(item.value);
 
     grouped[key].transactions.push(item);
@@ -445,6 +562,9 @@ function groupBanks(items: any[], dateStart: any, dateEnd: any) {
   );
 }
 
+/* --------------------------------------------------------
+    SUMMARYCARDS (INÍCIO DA SEÇÃO)
+-------------------------------------------------------- */
 
 export function SummaryCards({
   sheet,
@@ -495,6 +615,13 @@ export function SummaryCards({
   );
 }
 
+/* --------------------------------------------------------
+    FIM DA PARTE 1
+-------------------------------------------------------- */
+
+/* --------------------------------------------------------
+    CARD INDIVIDUAL (COM CONTRASTE CORRIGIDO PARA DARK/LIGHT)
+-------------------------------------------------------- */
 
 function SummaryCard(props: any) {
   const isBank = props.type === "bank";
@@ -504,18 +631,48 @@ function SummaryCard(props: any) {
   const [hidden, setHidden] = useState(false);
   const [showTip, setShowTip] = useState(false);
 
+  /* --------------------------------------------------------
+      DARK MODE DINÂMICO (OBSERVA ALTERAÇÕES)
+  -------------------------------------------------------- */
+
+  const [isDark, setIsDark] = useState(
+    typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const bg = isBank ? (isDark ? props.bgDark : props.bg) : undefined;
+
+  /* --------------------------------------------------------
+      RENDER DO CARD
+  -------------------------------------------------------- */
+
   return (
     <motion.div
       variants={{
         hidden: { opacity: 0, y: 15 },
         visible: { opacity: 1, y: 0 },
       }}
-      style={{ background: isBank ? props.bg : undefined }}
+      style={{ background: bg }}
       className={`
         rounded-3xl p-6 relative transition-all 
         ${
           isBank
-            ? "border border-white/40 bg-white/30 backdrop-blur-md shadow-xl hover:shadow-2xl hover:-translate-y-[4px]"
+            ? "border border-white/40 backdrop-blur-md shadow-xl hover:shadow-2xl hover:-translate-y-[4px]"
             : "bg-[#F5F4FA] border border-[#E1E0EB] shadow-sm dark:bg-[#1A1923] dark:border-[#2A2733] dark:shadow-lg hover:-translate-y-[3px] hover:shadow-md"
         }
       `}
@@ -525,7 +682,10 @@ function SummaryCard(props: any) {
         onMouseEnter={() => setShowTip(true)}
         onMouseLeave={() => setShowTip(false)}
       >
-        <HelpCircle size={19} className="text-[#555]" />
+        <HelpCircle
+          size={19}
+          className="text-[#888] dark:text-white/50 transition"
+        />
         {showTip && (
           <Tooltip text={isBank ? "Resumo do banco + gráfico" : "Resumo geral"} />
         )}
@@ -533,7 +693,11 @@ function SummaryCard(props: any) {
 
       <div className="flex justify-between items-center">
         <h3
-          className="text-md font-semibold text-[#222] dark:text-white/80"
+          className="
+          text-md font-semibold
+          text-[#2F2F36] 
+          dark:text-white/90
+        "
         >
           {props.title}
         </h3>
@@ -542,27 +706,38 @@ function SummaryCard(props: any) {
           <motion.div whileHover={{ scale: 1.12 }}>{props.icon}</motion.div>
         ) : (
           <button
-            className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition"
+            className="
+              p-2 rounded-xl transition
+              hover:bg-black/5 dark:hover:bg-white/10
+            "
             onClick={() => setHidden(!hidden)}
           >
-            {hidden ? <EyeOff size={24} /> : <Eye size={24} />}
+            {hidden ? (
+              <EyeOff size={22} className="text-[#333] dark:text-gray-300" />
+            ) : (
+              <Eye size={22} className="text-[#333] dark:text-gray-200" />
+            )}
           </button>
         )}
       </div>
 
+      {/* --------------------------------------------------------
+            BASE CARDS (Saldo, Entradas, Saídas, Final)
+      -------------------------------------------------------- */}
       {!isBank && (
         <>
           <p
             className="
               text-3xl font-extrabold mt-4 select-none
-              text-[#000] dark:text-white
+              text-[#000] 
+              dark:text-white
             "
           >
             {hidden ? "•••••" : formatCurrency(props.value)}
           </p>
 
           <div
-            className="h-[4px] rounded-full mt-5 opacity-70"
+            className="h-[4px] rounded-full mt-5 opacity-80"
             style={{
               background:
                 props.title === "Saídas"
@@ -575,21 +750,26 @@ function SummaryCard(props: any) {
         </>
       )}
 
+      {/* --------------------------------------------------------
+            BANK CARDS (Detalhado)
+      -------------------------------------------------------- */}
       {isBank && (
         <>
           <div className="mt-4 space-y-2">
             <Line label="Entradas" v={props.income} color="green" />
             <Line label="Saídas" v={props.expense} color="red" />
 
-            <div className="flex justify-between border-t pt-2 border-black/10">
-              <span className="font-semibold text-[#222]">Saldo</span>
+            <div className="flex justify-between border-t pt-2 border-white/10">
+              <span className="font-semibold text-[#222] dark:text-white/90">
+                Saldo
+              </span>
               <span
                 className={`font-bold ${
                   saldo > 0
-                    ? "text-green-700"
+                    ? "text-green-400"
                     : saldo < 0
-                    ? "text-red-600"
-                    : "text-gray-700"
+                    ? "text-red-400"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
               >
                 {formatCurrency(saldo)}
@@ -600,7 +780,10 @@ function SummaryCard(props: any) {
           <SparklineDual transactions={props.transactions} />
 
           <button
-            className="mt-4 w-full flex justify-between items-center text-[#333]"
+            className="
+              mt-4 w-full flex justify-between items-center
+              text-[#444] dark:text-gray-200
+            "
             onClick={() => setOpen(!open)}
           >
             <span>Transações</span>
@@ -615,14 +798,14 @@ function SummaryCard(props: any) {
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25 }}
                 className="
-                  mt-3 rounded-xl bg-white/60
-                  border border-black/10 shadow-inner 
+                  mt-3 rounded-xl bg-white/20
+                  border border-white/10 shadow-inner 
                   backdrop-blur-md
                 "
               >
                 <div className="p-3 max-h-64 overflow-y-auto space-y-3">
                   {props.transactions.length === 0 && (
-                    <p className="text-xs text-gray-500 text-center py-3">
+                    <p className="text-xs text-gray-700 dark:text-gray-300 text-center py-3">
                       Nenhuma transação neste período.
                     </p>
                   )}
@@ -640,16 +823,26 @@ function SummaryCard(props: any) {
   );
 }
 
+/* --------------------------------------------------------
+    LINE — CONTRASTE AJUSTADO
+-------------------------------------------------------- */
 
 function Line({ label, v, color }: any) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-sm text-gray-700 dark:text-gray-300">
+        {label}
+      </span>
       <span
         className={`
           text-sm font-semibold
-          ${color === "green" ? "text-green-600" : ""}
-          ${color === "red" ? "text-red-600" : ""}
+          ${
+            color === "green"
+              ? "text-green-500"
+              : color === "red"
+              ? "text-red-400"
+              : "dark:text-white/90 text-gray-800"
+          }
         `}
       >
         {formatCurrency(v)}
@@ -658,6 +851,9 @@ function Line({ label, v, color }: any) {
   );
 }
 
+/* --------------------------------------------------------
+    TRANSACTION ROW — CONTRASTE AJUSTADO
+-------------------------------------------------------- */
 
 function TransactionRow({ t }: any) {
   const vencOriginal = normalizeDate(t.date);
@@ -677,7 +873,7 @@ function TransactionRow({ t }: any) {
     <motion.div
       whileHover={{ scale: 1.02 }}
       className="
-        bg-white border border-gray-200
+        bg-white/10 border border-white/20
         p-3 rounded-xl shadow-sm relative transition
         hover:shadow-md hover:-translate-y-[2px]
       "
@@ -710,24 +906,34 @@ function TransactionRow({ t }: any) {
         </div>
       )}
 
-      <p className="text-xs text-gray-500">{vencText}</p>
+      <p className="text-xs text-gray-700 dark:text-gray-300">{vencText}</p>
 
-      <p className="font-semibold text-[#222] mt-1">
+      <p className="font-semibold text-[#47476b] dark:text-white/90 mt-1">
         {t.description || "(Sem descrição)"}
       </p>
 
       <div className="flex justify-between mt-1">
         <span
-          className={`font-bold ${
-            t.type === "income" ? "text-green-600" : "text-red-600"
-          }`}
+          className={`
+            font-bold
+            ${
+              t.type === "income"
+                ? "text-green-400"
+                : "text-red-400"
+            }
+          `}
         >
           {formatCurrency(t.value)}
         </span>
-        <span className="text-xs text-gray-500">
+
+        <span className="text-xs text-gray-500 dark:text-gray-400">
           {t.type === "income" ? "Entrada" : "Saída"}
         </span>
       </div>
     </motion.div>
   );
 }
+
+/* --------------------------------------------------------
+    FIM DO ARQUIVO
+-------------------------------------------------------- */

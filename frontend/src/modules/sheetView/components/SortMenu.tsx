@@ -29,44 +29,57 @@ export function SortMenu({
   return (
     <div
       className="
-        absolute right-0 mt-2 z-40 w-56 p-2 rounded-2xl
-        bg-[#1A1824]
-        border border-[#2C2838]
-        shadow-xl backdrop-blur-xl
-        animate-fadeIn
+        absolute right-0 mt-2 z-40 w-60
+        rounded-2xl p-2
+        shadow-xl backdrop-blur-xl animate-fadeIn
+        
+        /* LIGHT */
+        bg-white/90 border border-[#E6E1F7]
+        
+        /* DARK */
+        dark:bg-[#1A1824]/95 dark:border-[#2C2838]
       "
     >
-      {options.map((opt) => {
-        const active = sortField === opt.key;
+      {/* ---------------- SCROLL CONTAINER --------------- */}
+      <div
+        className="
+          max-h-[260px] overflow-y-auto custom-scroll
+          pr-1
+        "
+      >
+        {options.map((opt) => {
+          const active = sortField === opt.key;
 
-        return (
-          <button
-            key={opt.key}
-            onClick={() => applySort(opt.key as SortField)}
-            className={`
-              w-full flex items-center justify-between px-3 py-2
-              rounded-xl text-sm transition-all select-none
+          return (
+            <button
+              key={opt.key}
+              onClick={() => applySort(opt.key as SortField)}
+              className={`
+                w-full px-3 py-3 rounded-xl text-sm 
+                flex items-center justify-between 
+                transition-all select-none
 
-              ${
-                active
-                  ? "bg-[#241F33] text-[#B7A4FF] font-semibold"
-                  : "text-[#C8C5D6]"
-              }
+                ${
+                  active
+                    ? "text-[#7B61FF] font-semibold bg-[#F4F0FF] dark:bg-[#241F33] dark:text-[#B7A4FF]"
+                    : "text-[#3A3843] dark:text-[#C8C5D6]"
+                }
 
-              hover:bg-[#241F33]
-            `}
-          >
-            {opt.label}
+                hover:bg-[#EEE8FF] dark:hover:bg-[#241F33]
+              `}
+            >
+              <span>{opt.label}</span>
 
-            {active &&
-              (direction === "asc" ? (
-                <SortAsc size={18} className="text-[#B7A4FF]" />
-              ) : (
-                <SortDesc size={18} className="text-[#B7A4FF]" />
-              ))}
-          </button>
-        );
-      })}
+              {active &&
+                (direction === "asc" ? (
+                  <SortAsc size={18} className="text-[#7B61FF] dark:text-[#B7A4FF]" />
+                ) : (
+                  <SortDesc size={18} className="text-[#7B61FF] dark:text-[#B7A4FF]" />
+                ))}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -38,20 +38,26 @@ export function ItemModal({
   const title = mode === "create" ? "Novo item" : "Editar item";
   const [hoverTip, setHoverTip] = useState<string | null>(null);
 
+  /* --------------------------------------------------------
+      Tooltip com contraste reforçado
+  -------------------------------------------------------- */
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
         absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
-        bg-light-card dark:bg-dark-card
-        text-light-text dark:text-dark-text
-        border border-light-border dark:border-dark-border
-        shadow-md whitespace-nowrap animate-fadeIn
+        bg-white dark:bg-[#1E1D25]
+        text-[#2F2F36] dark:text-white/90
+        border border-gray-300 dark:border-white/20
+        shadow-lg whitespace-nowrap animate-fadeIn
       "
     >
       {text}
     </div>
   );
 
+  /* --------------------------------------------------------
+      Label com contraste adequado
+  -------------------------------------------------------- */
   const Label = ({
     label,
     tip,
@@ -62,13 +68,13 @@ export function ItemModal({
     tipKey: string;
   }) => (
     <div className="flex items-center gap-1 mb-1 relative">
-      <span className="text-sm font-semibold text-light-text dark:text-dark-text">
+      <span className="text-sm font-semibold text-[#2F2F36] dark:text-white/90">
         {label}
       </span>
 
       <HelpCircle
         size={15}
-        className="text-[#7B61FF] cursor-pointer"
+        className="text-[#7B61FF] dark:text-[#A99BFF] cursor-pointer"
         onMouseEnter={() => setHoverTip(tipKey)}
         onMouseLeave={() => setHoverTip(null)}
       />
@@ -77,15 +83,20 @@ export function ItemModal({
     </div>
   );
 
+  /* --------------------------------------------------------
+      Modal
+  -------------------------------------------------------- */
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div
         className="
           w-[95%] max-w-lg max-h-[90vh] overflow-y-auto
           rounded-[32px] p-8 relative animate-slideUp
-          bg-gradient-to-br from-light-card/90 to-light-card/70
-          dark:bg-gradient-to-br dark:from-dark-card/90 dark:to-dark-card/70
-          border border-light-border/60 dark:border-dark-border/40
+
+          bg-gradient-to-br from-white/90 to-white/70
+          dark:bg-gradient-to-br dark:from-[#1A1923]/90 dark:to-[#1A1923]/70
+
+          border border-gray-200/60 dark:border-white/15
           shadow-xl backdrop-blur-xl
         "
       >
@@ -96,19 +107,19 @@ export function ItemModal({
             <div
               className="
                 p-3 rounded-2xl shadow-sm border
-                bg-pastel-lilac dark:bg-dark-card2
-                border-light-border dark:border-dark-border
+                bg-[#F5F2FF] dark:bg-[#2A2733]
+                border-gray-200 dark:border-white/15
               "
             >
               {form.type === "income" ? (
-                <Coins size={24} className="text-green-600" />
+                <Coins size={24} className="text-green-600 dark:text-green-400" />
               ) : (
-                <Coins size={24} className="text-red-600" />
+                <Coins size={24} className="text-red-600 dark:text-red-400" />
               )}
             </div>
 
             <div>
-              <h2 className="text-2xl font-semibold text-light-text dark:text-dark-text">
+              <h2 className="text-2xl font-semibold text-[#2F2F36] dark:text-white/90">
                 {title}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -144,15 +155,17 @@ export function ItemModal({
             <div
               className="
                 flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
-                bg-light-card dark:bg-dark-input
-                border border-light-border dark:border-dark-border
+                bg-white dark:bg-[#2A2733]
+                border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
               "
             >
               <Coins
                 size={20}
                 className={
-                  form.type === "income" ? "text-green-600" : "text-red-600"
+                  form.type === "income"
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
                 }
               />
 
@@ -165,7 +178,10 @@ export function ItemModal({
                     paid_at: e.target.value === "income" ? "" : form.paid_at,
                   })
                 }
-                className="w-full outline-none bg-transparent text-sm text-light-text dark:text-dark-text"
+                className="
+                  w-full outline-none bg-transparent text-sm
+                  text-[#2F2F36] dark:text-white/90
+                "
               >
                 <option value="income">Entrada</option>
                 <option value="expense">Saída</option>
@@ -184,8 +200,8 @@ export function ItemModal({
             <div
               className="
                 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
-                bg-light-card dark:bg-dark-input
-                border border-light-border dark:border-dark-border
+                bg-white dark:bg-[#2A2733]
+                border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
               "
             >
@@ -193,7 +209,10 @@ export function ItemModal({
 
               <input
                 type="number"
-                className="w-full bg-transparent outline-none text-sm text-light-text dark:text-dark-text"
+                className="
+                  w-full bg-transparent outline-none text-sm
+                  text-[#2F2F36] dark:text-white/90
+                "
                 value={form.value}
                 onChange={(e) => setForm({ ...form, value: e.target.value })}
               />
@@ -211,8 +230,8 @@ export function ItemModal({
             <div
               className="
                 flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
-                bg-light-card dark:bg-dark-input
-                border border-light-border dark:border-dark-border
+                bg-white dark:bg-[#2A2733]
+                border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
               "
             >
@@ -221,11 +240,16 @@ export function ItemModal({
                   (c) => String(c.id) === form.category_id
                 );
                 const Icon = getCategoryIcon(selected);
-                return <Icon size={20} className="text-gray-500 dark:text-gray-300" />;
+                return (
+                  <Icon size={20} className="text-gray-500 dark:text-gray-300" />
+                );
               })()}
 
               <select
-                className="w-full outline-none bg-transparent text-sm text-light-text dark:text-dark-text"
+                className="
+                  w-full outline-none bg-transparent text-sm
+                  text-[#2F2F36] dark:text-white/90
+                "
                 value={form.category_id}
                 onChange={(e) =>
                   setForm({ ...form, category_id: e.target.value })
@@ -252,8 +276,8 @@ export function ItemModal({
             <div
               className="
                 flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
-                bg-light-card dark:bg-dark-input
-                border border-light-border dark:border-dark-border
+                bg-white dark:bg-[#2A2733]
+                border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
               "
             >
@@ -262,7 +286,7 @@ export function ItemModal({
               <select
                 className="
                   w-full outline-none bg-transparent text-sm
-                  text-light-text dark:text-dark-text
+                  text-[#2F2F36] dark:text-white/90
                 "
                 value={form.bank_id}
                 onChange={(e) =>
@@ -289,9 +313,9 @@ export function ItemModal({
 
             <div
               className="
-                flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
-                bg-light-card dark:bg-dark-input
-                border border-light-border dark:border-dark-border
+                flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
+                bg-white dark:bg-[#2A2733]
+                border border-gray-300 dark:border-white/15
                 focus-within:ring-2 focus-within:ring-[#7B61FF]
               "
             >
@@ -299,7 +323,10 @@ export function ItemModal({
 
               <input
                 type="date"
-                className="w-full bg-transparent outline-none text-sm text-light-text dark:text-dark-text"
+                className="
+                  w-full bg-transparent outline-none text-sm
+                  text-[#2F2F36] dark:text-white/90
+                "
                 value={form.date}
                 onChange={(e) =>
                   setForm({ ...form, date: e.target.value })
@@ -308,7 +335,7 @@ export function ItemModal({
             </div>
           </div>
 
-          {/* Pago em (somente para saídas) */}
+          {/* Pago em (somente saídas) */}
           {form.type === "expense" && (
             <div>
               <Label
@@ -319,9 +346,9 @@ export function ItemModal({
 
               <div
                 className="
-                  flex items-center gap-3 px-4 py-3 shadow-sm rounded-2xl
-                  bg-light-card dark:bg-dark-input
-                  border border-light-border dark:border-dark-border
+                  flex items-center gap-3 px-4 py-3 rounded-2xl shadow-sm
+                  bg-white dark:bg-[#2A2733]
+                  border border-gray-300 dark:border-white/15
                   focus-within:ring-2 focus-within:ring-[#7B61FF]
                 "
               >
@@ -331,7 +358,7 @@ export function ItemModal({
                   type="date"
                   className="
                     w-full bg-transparent outline-none text-sm
-                    text-light-text dark:text-dark-text
+                    text-[#2F2F36] dark:text-white/90
                   "
                   value={form.paid_at}
                   onChange={(e) =>
@@ -353,9 +380,9 @@ export function ItemModal({
             <textarea
               className="
                 w-full block min-h-[90px] p-3 text-sm rounded-2xl shadow-sm resize-none
-                bg-light-card dark:bg-dark-input
-                text-light-text dark:text-dark-text
-                border border-light-border dark:border-dark-border
+                bg-white dark:bg-[#2A2733]
+                text-[#2F2F36] dark:text-white/90
+                border border-gray-300 dark:border-white/15
                 focus:ring-2 focus:ring-[#7B61FF]
               "
               value={form.description}
@@ -365,7 +392,7 @@ export function ItemModal({
             />
           </div>
 
-          {/* BUTTON */}
+          {/* Button */}
           <button
             onClick={onSave}
             disabled={saving}

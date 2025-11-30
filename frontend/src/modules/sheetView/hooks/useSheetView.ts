@@ -1,6 +1,4 @@
-
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { api } from "../../../services/api";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -25,6 +23,9 @@ import type {
   SortField,
 } from "../types/sheet";
 
+/* ----------------------------------------------------------
+   CONSTANTES E HELPERS GERAIS
+---------------------------------------------------------- */
 
 const EMPTY_FORM: ItemFormState = {
   type: "income",
@@ -36,6 +37,12 @@ const EMPTY_FORM: ItemFormState = {
   paid_at: "",
 };
 
+// extrai payload em formato Laravel ({ data: ... }) ou direto
+function extract<T = any>(res: any): T {
+  if (res?.data?.data !== undefined) return res.data.data as T;
+  if (res?.data !== undefined) return res.data as T;
+  return res as T;
+}
 
 function todayIso(): string {
   const d = new Date();
@@ -45,8 +52,6 @@ function todayIso(): string {
   )}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-
-
 function checkOverdue(item: UnifiedItem): boolean {
   if (!item.date) return false;
   if (item.type === "income") return false;
@@ -55,6 +60,9 @@ function checkOverdue(item: UnifiedItem): boolean {
   return item.date < todayIso();
 }
 
+/* ----------------------------------------------------------
+   HOOK PRINCIPAL
+---------------------------------------------------------- */
 
 export function useSheetView() {
   const { id } = useParams();
@@ -62,7 +70,9 @@ export function useSheetView() {
 
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [sheetItems, setSheetItems] = useState<UnifiedItem[] | null>(null);
-  const [transactionItems, setTransactionItems] = useState<UnifiedItem[] | null>(null);
+  const [transactionItems, setTransactionItems] = useState<UnifiedItem[] | null>(
+    null
+  );
 
   const [banks, setBanks] = useState<Bank[] | null>(null);
   const [categories, setCategories] = useState<Category[] | null>(null);
@@ -94,10 +104,15 @@ export function useSheetView() {
   const [savingItem, setSavingItem] = useState(false);
   const [savingSheet, setSavingSheet] = useState(false);
 
-  const [originalDueDates, setOriginalDueDates] = useState<Record<string, string | null>>({});
+  const [originalDueDates, setOriginalDueDates] = useState<
+    Record<string, string | null>
+  >({});
 
+  /* --------------------------------------------------------
+     CARREGAMENTO INICIAL
+  -------------------------------------------------------- */
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -112,19 +127,22 @@ export function useSheetView() {
           api.get(`/categories`),
         ]);
 
-      const sheetData = sheetRes.data?.data ?? sheetRes.data;
+      const sheetData = extract<any>(sheetRes);
 
       setSheet({
         ...sheetData,
         initial_balance: Number(sheetData.initial_balance ?? 0),
       });
 
-      setSheetItems(
-        (sheetItemsRes.data?.data || sheetItemsRes.data || []).map(apiItemToUnified)
-      );
+      const sheetItemsRaw = extract<any[]>(sheetItemsRes) || [];
+      const transRaw = extract<any[]>(transRes) || [];
+      const banksRaw = extract<any[]>(banksRes) || [];
+      const catsRaw = extract<any[]>(catRes) || [];
+
+      setSheetItems(sheetItemsRaw.map(apiItemToUnified));
 
       setTransactionItems(
-        (transRes.data?.data || transRes.data || []).map((raw: any) =>
+        transRaw.map((raw: any) =>
           apiItemToUnified({
             ...raw,
             origin: "transaction",
@@ -134,14 +152,14 @@ export function useSheetView() {
       );
 
       setBanks(
-        (banksRes.data?.data || banksRes.data || []).map((b: any) => ({
+        banksRaw.map((b: any) => ({
           id: b.id,
           name: b.name,
         }))
       );
 
       setCategories(
-        (catRes.data?.data || catRes.data || []).map((c: any) => ({
+        catsRaw.map((c: any) => ({
           id: c.id,
           name: c.name,
           icon: c.icon ?? null,
@@ -152,23 +170,30 @@ export function useSheetView() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [loadData]);
 
+  /* --------------------------------------------------------
+     COMPOSIÇÃO DE ITENS
+  -------------------------------------------------------- */
 
   const allItems = useMemo(() => {
     if (!sheetItems || !transactionItems) return null;
     return [...sheetItems, ...transactionItems];
   }, [sheetItems, transactionItems]);
 
+  /* --------------------------------------------------------
+     FILTRO + ORDENAÇÃO
+  -------------------------------------------------------- */
 
   const filtered = useMemo(() => {
     if (!allItems) return null;
 
     const term = normalize(search);
+    const dir = direction === "asc" ? 1 : -1;
 
     const list = allItems.filter((i) => {
       if (!term) return true;
@@ -185,8 +210,6 @@ export function useSheetView() {
 
       return fields.some((f) => f.includes(term));
     });
-
-    const dir = direction === "asc" ? 1 : -1;
 
     return list.sort((a, b) => {
       let A: any;
@@ -229,26 +252,43 @@ export function useSheetView() {
     });
   }, [allItems, search, sortField, direction]);
 
+  /* --------------------------------------------------------
+     MATEMÁTICA FINANCEIRA (ENTRADAS / SAÍDAS / SALDO)
+  -------------------------------------------------------- */
 
-  const entradas = filtered
-    ? filtered.filter((i) => i.type === "income").reduce((s, i) => s + Number(i.value), 0)
-    : 0;
+  const { entradas, saidas, saldoFinal } = useMemo(() => {
+    let totalIn = 0;
+    let totalOut = 0;
 
-  const saidas = filtered
-    ? filtered.filter((i) => i.type === "expense").reduce((s, i) => s + Number(i.value), 0)
-    : 0;
+    if (filtered) {
+      for (const i of filtered) {
+        const val = Number(i.value) || 0;
 
-  const saldoFinal = sheet
-    ? Number(sheet.initial_balance) + entradas - saidas
-    : 0;
+        if (i.type === "income") totalIn += val;
+        if (i.type === "expense") totalOut += val;
+      }
+    }
 
+    const initial = sheet ? Number(sheet.initial_balance) || 0 : 0;
+    const finalBalance = initial + totalIn - totalOut;
+
+    return {
+      entradas: totalIn,
+      saidas: totalOut,
+      saldoFinal: finalBalance,
+    };
+  }, [filtered, sheet]);
+
+  /* --------------------------------------------------------
+     ATUALIZAÇÃO LOCAL DE ITEM
+  -------------------------------------------------------- */
 
   function updateLocalItemField(
     item: UnifiedItem,
     field: keyof UnifiedItem,
     value: any
   ) {
-    const fn = (prev: UnifiedItem[] | null) =>
+    const apply = (prev: UnifiedItem[] | null) =>
       prev
         ? prev.map((i) =>
             i.id === item.id && i.origin === item.origin
@@ -257,10 +297,16 @@ export function useSheetView() {
           )
         : prev;
 
-    if (item.origin === "sheet") setSheetItems(fn);
-    else setTransactionItems(fn);
+    if (item.origin === "sheet") {
+      setSheetItems(apply);
+    } else {
+      setTransactionItems(apply);
+    }
   }
 
+  /* --------------------------------------------------------
+     UPDATE INLINE (VALOR / DATA / PAGO / ETC)
+  -------------------------------------------------------- */
 
   async function updateInline(
     item: UnifiedItem,
@@ -277,12 +323,12 @@ export function useSheetView() {
           ? `/sheets/${sheet?.id}/items/${item.id}`
           : `/transactions/${item.id}`;
 
-
+      // Caso especial: alteração de "paid_at" (pago / não pago) mantendo vencimento original
       if (field === "paid_at") {
         const newPaid = value || null;
 
         if (newPaid && !originalDueDates[key]) {
-          setOriginalDueDates((p) => ({ ...p, [key]: item.date ?? null }));
+          setOriginalDueDates((prev) => ({ ...prev, [key]: item.date ?? null }));
         }
 
         const restored =
@@ -296,7 +342,7 @@ export function useSheetView() {
           date: restored,
         });
 
-        const server = res.data?.data ?? {};
+        const server = extract<any>(res);
 
         const updated: UnifiedItem = {
           ...item,
@@ -321,9 +367,9 @@ export function useSheetView() {
         return;
       }
 
-
+      // Atualização simples de um campo
       const res = await api.put(endpoint, { [field]: value });
-      const server = res.data?.data ?? {};
+      const server = extract<any>(res);
 
       const updated: UnifiedItem = {
         ...item,
@@ -350,31 +396,37 @@ export function useSheetView() {
     }
   }
 
+  /* --------------------------------------------------------
+     DELETE INLINE (ITEM ÚNICO)
+  -------------------------------------------------------- */
 
-async function deleteInline(item: UnifiedItem) {
-  const endpoint =
-    item.origin === "sheet"
-      ? `/sheets/${sheet?.id}/items/${item.id}`
-      : `/transactions/${item.id}`;
+  async function deleteInline(item: UnifiedItem) {
+    const endpoint =
+      item.origin === "sheet"
+        ? `/sheets/${sheet?.id}/items/${item.id}`
+        : `/transactions/${item.id}`;
 
-  await api.delete(endpoint);
+    await api.delete(endpoint);
 
-  const remove = (prev: UnifiedItem[] | null) =>
-    prev ? prev.filter((i) => i.id !== item.id) : prev;
+    const remove = (prev: UnifiedItem[] | null) =>
+      prev ? prev.filter((i) => i.id !== item.id) : prev;
 
-  if (item.origin === "sheet") setSheetItems(remove);
-  else setTransactionItems(remove);
+    if (item.origin === "sheet") setSheetItems(remove);
+    else setTransactionItems(remove);
 
-  Swal.fire({
-    icon: "success",
-    title: "Removido",
-    text: "O item foi excluído.",
-    timer: 1400,
-    showConfirmButton: false,
-    customClass: { popup: "swal-pastel-popup" },
-  });
-}
+    Swal.fire({
+      icon: "success",
+      title: "Removido",
+      text: "O item foi excluído.",
+      timer: 1400,
+      showConfirmButton: false,
+      customClass: { popup: "swal-pastel-popup" },
+    });
+  }
 
+  /* --------------------------------------------------------
+     DELETE SHEET
+  -------------------------------------------------------- */
 
   async function deleteSheet() {
     if (!sheet) return;
@@ -397,6 +449,9 @@ async function deleteInline(item: UnifiedItem) {
     navigate("/sheets");
   }
 
+  /* --------------------------------------------------------
+     MODAIS (ABERTURA)
+  -------------------------------------------------------- */
 
   function openCreateItemModal() {
     setModalMode("create");
@@ -436,6 +491,9 @@ async function deleteInline(item: UnifiedItem) {
     setShowSheetModal(true);
   }
 
+  /* --------------------------------------------------------
+     SAVE ITEM (CRIAR / EDITAR) VIA MODAL
+  -------------------------------------------------------- */
 
   async function saveItemFromModal() {
     if (!sheet || savingItem) return;
@@ -456,26 +514,40 @@ async function deleteInline(item: UnifiedItem) {
     try {
       setSavingItem(true);
 
-
+      // CRIAÇÃO
       if (modalMode === "create") {
         const res = await api.post(`/sheets/${sheet.id}/items`, payload);
 
-        let unified = apiItemToUnified(res.data?.data);
+        let unified = apiItemToUnified(extract<any>(res));
         unified.origin = "sheet";
         unified.sheet_id = sheet.id;
 
         unified = {
           ...unified,
-          category: categories?.find((c) => c.id === unified.category_id) || null,
+          category:
+            categories?.find((c) => c.id === unified.category_id) || null,
           bank: banks?.find((b) => b.id === unified.bank_id) || null,
         };
+
+        // Se o banco ainda não está na lista, adiciona
+        if (unified.bank_id && !banks?.some((b) => b.id === unified.bank_id)) {
+          const newBank: Bank = {
+            id: Number(unified.bank_id),
+            name: unified.bank?.name ? String(unified.bank.name) : "Banco",
+          };
+
+          setBanks((prev) => {
+            if (!prev) return [newBank];
+            return [...prev, newBank];
+          });
+        }
 
         setSheetItems((prev) => (prev ? [...prev, unified] : [unified]));
 
         Swal.fire("Adicionado", "Item criado com sucesso.", "success");
       }
 
- 
+      // EDIÇÃO
       else if (editingItem) {
         const endpoint =
           editingItem.origin === "sheet"
@@ -485,12 +557,11 @@ async function deleteInline(item: UnifiedItem) {
         const res = await api.put(endpoint, payload);
 
         let updated = apiItemToUnified(
-          res.data?.data || { ...editingItem.raw, ...payload }
+          extract<any>(res) || { ...editingItem.raw, ...payload }
         );
 
         updated.origin = editingItem.origin;
-        updated.sheet_id =
-          editingItem.origin === "sheet" ? sheet.id : null;
+        updated.sheet_id = editingItem.origin === "sheet" ? sheet.id : null;
 
         updated = {
           ...updated,
@@ -498,6 +569,18 @@ async function deleteInline(item: UnifiedItem) {
             categories?.find((c) => c.id === updated.category_id) || null,
           bank: banks?.find((b) => b.id === updated.bank_id) || null,
         };
+
+        if (updated.bank_id && !banks?.some((b) => b.id === updated.bank_id)) {
+          const newBank: Bank = {
+            id: Number(updated.bank_id),
+            name: updated.bank?.name ? String(updated.bank.name) : "Banco",
+          };
+
+          setBanks((prev) => {
+            if (!prev) return [newBank];
+            return [...prev, newBank];
+          });
+        }
 
         const apply = (prev: UnifiedItem[] | null) =>
           prev
@@ -525,6 +608,9 @@ async function deleteInline(item: UnifiedItem) {
     }
   }
 
+  /* --------------------------------------------------------
+     SAVE SHEET (EDIÇÃO DE CABEÇALHO)
+  -------------------------------------------------------- */
 
   async function saveSheet() {
     if (!sheet || savingSheet) return;
@@ -542,7 +628,7 @@ async function deleteInline(item: UnifiedItem) {
 
       const res = await api.put(`/sheets/${sheet.id}`, payload);
 
-      const updated = res.data?.data ?? payload;
+      const updated = extract<any>(res) ?? payload;
 
       setSheet({
         ...sheet,
@@ -559,7 +645,11 @@ async function deleteInline(item: UnifiedItem) {
       setSavingSheet(false);
     }
   }
-  
+
+  /* --------------------------------------------------------
+     RETORNO DO HOOK
+  -------------------------------------------------------- */
+
   return {
     sheet,
     sheetItems,

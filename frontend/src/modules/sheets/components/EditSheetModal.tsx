@@ -12,6 +12,7 @@ import {
 import { Input } from "./Input";
 import { Textarea } from "./Textarea";
 
+
 interface EditModalProps {
   form: {
     name: string;
@@ -44,14 +45,15 @@ export function EditSheetModal({
     }
   }
 
+
   const Tooltip = ({ text }: { text: string }) => (
     <div
       className="
         absolute left-0 mt-1 px-3 py-1 rounded-lg text-xs z-40
-        bg-light-card dark:bg-dark-card
-        text-light-text dark:text-dark-text
-        border border-light-border dark:border-dark-border
-        shadow-md whitespace-nowrap animate-fadeIn
+        bg-white dark:bg-[#1E1D25]
+        text-[#2F2F36] dark:text-white/90
+        border border-gray-300 dark:border-white/20
+        shadow-lg whitespace-nowrap animate-fadeIn
       "
     >
       {text}
@@ -66,13 +68,13 @@ export function EditSheetModal({
     tipKey: string;
   }) => (
     <div className="flex items-center gap-1 mb-1 relative">
-      <span className="text-sm font-semibold text-light-text dark:text-dark-text">
+      <span className="text-sm font-semibold text-[#2F2F36] dark:text-white/90">
         {text}
       </span>
 
       <HelpCircle
         size={15}
-        className="text-[#7B61FF] cursor-pointer"
+        className="text-[#7B61FF] dark:text-[#A99BFF] cursor-pointer"
         onMouseEnter={() => setHoverTip(tipKey)}
         onMouseLeave={() => setHoverTip(null)}
       />
@@ -83,13 +85,13 @@ export function EditSheetModal({
             tipKey === "name"
               ? "Nome utilizado para identificar a planilha."
               : tipKey === "description"
-              ? "Descrição opcional para organizar melhor sua gestão."
+              ? "Descrição opcional para organização interna."
               : tipKey === "month"
-              ? "Informe o mês no formato numérico, ex: 11."
+              ? "Informe o mês em formato numérico (1–12)."
               : tipKey === "year"
-              ? "Informe o ano da planilha, ex: 2025."
+              ? "Informe o ano da planilha (ex: 2026)."
               : tipKey === "initial"
-              ? "Valor inicial no início do mês."
+              ? "Saldo inicial disponível no início do mês."
               : ""
           }
         />
@@ -101,7 +103,7 @@ export function EditSheetModal({
     <div
       className="
         fixed inset-0 z-50 flex items-center justify-center
-        bg-black/40 dark:bg-black/60 backdrop-blur-sm
+        bg-black/45 dark:bg-black/60 backdrop-blur-sm
         animate-fadeIn
       "
     >
@@ -110,46 +112,58 @@ export function EditSheetModal({
           w-[95%] max-w-xl max-h-[90vh] overflow-y-auto p-8 rounded-[32px]
           relative shadow-xl animate-slideUp
 
-          bg-gradient-to-br from-light-card/90 to-light-card/70
-          dark:bg-gradient-to-br dark:from-dark-card/90 dark:to-dark-card/70
+          bg-gradient-to-br from-white/90 to-white/70
+          dark:bg-gradient-to-br dark:from-[#1A1923]/90 dark:to-[#1A1923]/70
 
-          border border-light-border/60 dark:border-dark-border/40
+          border border-gray-200/60 dark:border-white/15
           backdrop-blur-xl
         "
       >
-        {/* HEADER */}
+
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-4">
+
             <div
               className="
                 p-3 rounded-2xl border shadow-sm
-                bg-pastel-lilac dark:bg-dark-card2
-                border-light-border dark:border-dark-border
+                bg-[#F5F2FF] dark:bg-[#2A2733]
+                border-gray-200 dark:border-white/15
               "
             >
-              <FileSpreadsheet size={22} className="text-[#7B61FF]" />
+              <FileSpreadsheet
+                size={22}
+                className="text-[#7B61FF] dark:text-[#A99BFF]"
+              />
             </div>
 
-            <h2 className="text-2xl font-semibold text-light-text dark:text-dark-text">
-              Editar Planilha
-            </h2>
+            <div>
+              <h2 className="text-2xl font-semibold text-[#2F2F36] dark:text-white/90">
+                Editar Planilha
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Atualize as informações e salve as alterações.
+              </p>
+            </div>
+
           </div>
 
           <button
             onClick={onClose}
+            disabled={loading}
             className="
               p-2 rounded-xl transition
               text-gray-600 dark:text-gray-300
               hover:bg-black/10 dark:hover:bg-white/10
             "
-            disabled={loading}
           >
             <X size={22} />
           </button>
         </div>
 
-        {/* FORM */}
         <div className="space-y-7">
+
+
           <div>
             <Label text="Nome" tipKey="name" />
             <Input
@@ -162,6 +176,7 @@ export function EditSheetModal({
             />
           </div>
 
+     
           <div>
             <Label text="Descrição" tipKey="description" />
             <Textarea
@@ -173,6 +188,7 @@ export function EditSheetModal({
             />
           </div>
 
+  
           <div className="grid grid-cols-2 gap-6">
             <div>
               <Label text="Mês" tipKey="month" />
@@ -201,6 +217,7 @@ export function EditSheetModal({
             </div>
           </div>
 
+         
           <div>
             <Label text="Saldo Inicial" tipKey="initial" />
             <Input
@@ -208,7 +225,7 @@ export function EditSheetModal({
               type="number"
               value={form.initial_balance}
               disabled={loading}
-              icon={<Coins className="text-[#7B61FF]" size={16} />}
+              icon={<Coins className="text-[#7B61FF] dark:text-[#A99BFF]" size={16} />}
               placeholder="Ex: 0"
               onChange={(v: string) =>
                 setForm({ ...form, initial_balance: v })
@@ -216,13 +233,14 @@ export function EditSheetModal({
             />
           </div>
 
+   
           <button
             onClick={handleSave}
             disabled={loading}
             className="
-              mt-6 w-full px-5 py-4 rounded-2xl font-medium
+              mt-6 w-full px-5 py-4 rounded-2xl font-medium text-white
               flex items-center justify-center gap-3
-              text-white transition-all active:scale-[0.97] disabled:opacity-60
+              transition-all active:scale-[0.97] disabled:opacity-60
 
               bg-gradient-to-r from-[#7B61FF] to-[#6A54E6]
               hover:shadow-lg hover:shadow-[#7B61FF]/25
