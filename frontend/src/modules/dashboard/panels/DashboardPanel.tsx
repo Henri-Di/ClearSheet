@@ -12,6 +12,7 @@ import {
 import { DashboardCard } from "../components/DashboardCard";
 import { ChartCard } from "../components/ChartCard";
 import { OverviewRow } from "../components/OverviewRow";
+import { DashboardFilters } from "../components/DashboardFilters";
 
 import { MonthlyBarChart } from "../components/MonthlyBarChart";
 import { BalanceLineChart } from "../components/BalanceLineChart";
@@ -37,6 +38,11 @@ export default function DashboardPanel() {
   const [balances, setBalances] = useState<BalanceData[]>([]);
   const [categoriesGraph, setCategoriesGraph] = useState<CategoryData[]>([]);
 
+  const [period, setPeriod] = useState("3m");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [order, setOrder] = useState("none");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   async function loadAll() {
     try {
       setLoading(true);
@@ -61,7 +67,6 @@ export default function DashboardPanel() {
       const monthlyRaw = monthlyRes.data.data ?? [];
       const balanceRaw = balanceRes.data.data ?? [];
       const categoriesRaw = categoriesRes.data.data ?? [];
-
 
       setMonthly(
         monthlyRaw.map((m: any) => ({
@@ -107,44 +112,85 @@ export default function DashboardPanel() {
     loadAll();
   }, []);
 
-
-
   if (loading) {
     return (
       <div className="p-12 space-y-12">
-        <div className="h-10 rounded-xl w-64 bg-gray-200 dark:bg-[#1D1C22]"></div>
-
+        <div className="h-10 rounded-xl w-64 bg-gray-200 dark:bg-[#1D1C22]" />
         <div className="grid grid-cols-4 gap-6">
-          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
-          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
-          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
-          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
+          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
+          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
+          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
+          <div className="h-32 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
         </div>
-
         <div className="grid grid-cols-2 gap-6">
-          <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
-          <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
+          <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
+          <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
         </div>
-
-        <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]"></div>
+        <div className="h-80 rounded-3xl bg-gray-200 dark:bg-[#1D1C22]" />
       </div>
     );
   }
 
+  function filterPeriod(list: any[]) {
+    const now = new Date();
+    if (period === "3m") return list.slice(-3);
+    if (period === "6m") return list.slice(-6);
+    if (period === "year")
+      return list.filter((m) => {
+        const d = new Date(`${m.month} 1, ${now.getFullYear()}`);
+        return d.getFullYear() === now.getFullYear();
+      });
+    if (period === "lastyear")
+      return list.filter((m) => {
+        const d = new Date(`${m.month} 1, ${now.getFullYear() - 1}`);
+        return d.getFullYear() === now.getFullYear() - 1;
+      });
+    return list;
+  }
 
+  function filterType(list: MonthlyData[]) {
+    if (typeFilter === "income") return list.map((m) => ({ ...m, expense: 0 }));
+    if (typeFilter === "expense") return list.map((m) => ({ ...m, income: 0 }));
+    return list;
+  }
 
-  const totalEntradas = monthly.reduce((t, m) => t + (m.income ?? 0), 0);
-  const totalSaidas = monthly.reduce((t, m) => t + (m.expense ?? 0), 0);
-  const saldoFinal = balances?.[balances.length - 1]?.balance ?? 0;
+  function filterCategories(list: CategoryData[]) {
+    if (selectedCategories.length === 0) return list;
+    return list.filter((c) =>
+      selectedCategories.includes(String(c.name ?? "-"))
+    );
+  }
+
+  function sortCategories(list: CategoryData[]) {
+    if (order === "high") return [...list].sort((a, b) => b.total - a.total);
+    if (order === "low") return [...list].sort((a, b) => a.total - b.total);
+    if (order === "az")
+      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    if (order === "za")
+      return [...list].sort((a, b) => b.name.localeCompare(a.name));
+    return list;
+  }
+
+  const monthlyFiltered = filterType(filterPeriod(monthly));
+  const balancesFiltered = filterPeriod(balances);
+  const categoriesFiltered = sortCategories(filterCategories(categoriesGraph));
+
+  const totalEntradas = monthlyFiltered.reduce(
+    (t, m) => t + (m.income ?? 0),
+    0
+  );
+  const totalSaidas = monthlyFiltered.reduce(
+    (t, m) => t + (m.expense ?? 0),
+    0
+  );
+  const saldoFinal = balancesFiltered?.[balancesFiltered.length - 1]?.balance ?? 0;
   const economiaMedia =
-    balances.length > 1
-      ? (totalEntradas - totalSaidas) / balances.length
+    balancesFiltered.length > 1
+      ? (totalEntradas - totalSaidas) / balancesFiltered.length
       : totalEntradas - totalSaidas;
 
   return (
     <div className="animate-fadeIn space-y-14 pb-20">
-
-      {/* HEADER */}
       <div className="flex items-center gap-3">
         <BarChart3 size={32} className="text-primary" />
         <h1 className="font-display text-4xl font-semibold tracking-tight text-[#2F2F36] dark:text-white">
@@ -152,6 +198,17 @@ export default function DashboardPanel() {
         </h1>
       </div>
 
+      <DashboardFilters
+        period={period}
+        setPeriod={setPeriod}
+        type={typeFilter}
+        setType={setTypeFilter}
+        order={order}
+        setOrder={setOrder}
+        categories={categoriesGraph}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+      />
 
       <OverviewRow
         saldo={saldoFinal}
@@ -160,7 +217,6 @@ export default function DashboardPanel() {
         economia={economiaMedia}
       />
 
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <DashboardCard
           icon={<FileSpreadsheet size={26} />}
@@ -168,21 +224,18 @@ export default function DashboardPanel() {
           title="Planilhas"
           value={stats.sheets}
         />
-
         <DashboardCard
           icon={<FolderTree size={26} />}
           iconBg="bg-[#F4E9FF] dark:bg-dark-card"
           title="Categorias"
           value={stats.categories}
         />
-
         <DashboardCard
           icon={<Receipt size={26} />}
           iconBg="bg-[#FCEEFF] dark:bg-dark-card"
           title="Transações"
           value={stats.transactions}
         />
-
         <DashboardCard
           icon={<Users size={26} />}
           iconBg="bg-[#EEF0FF] dark:bg-dark-card"
@@ -191,20 +244,18 @@ export default function DashboardPanel() {
         />
       </div>
 
-
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
         <ChartCard title="Entradas e Saídas por Mês">
-          <MonthlyBarChart data={monthly} />
+          <MonthlyBarChart data={monthlyFiltered} />
         </ChartCard>
 
         <ChartCard title="Saldo Acumulado">
-          <BalanceLineChart data={balances} />
+          <BalanceLineChart data={balancesFiltered} />
         </ChartCard>
       </div>
 
-    
       <ChartCard title="Distribuição por Categoria">
-        <CategoriesPieChart2026 data={categoriesGraph} />
+        <CategoriesPieChart2026 data={categoriesFiltered} />
       </ChartCard>
     </div>
   );
