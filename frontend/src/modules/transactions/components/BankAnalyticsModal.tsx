@@ -250,14 +250,14 @@ export function BankAnalyticsModal({
           className="
             w-[92%] max-w-6xl max-h-[92%]
             overflow-y-auto
-            rounded-3xl
-            border
-            bg-gradient-to-br from-white/90 to-white/80
-            dark:from-[#181820]/90 dark:to-[#101016]/90
-            border-[#ECE9FF] dark:border-[#30303A]
-            shadow-[0_0_45px_-10px_rgba(123,97,255,0.35)]
-            p-10
-            backdrop-blur-2xl
+            rounded-[34px]
+            border border-white/50 dark:border-white/10
+            bg-white/70 dark:bg-[#101018]/70
+            backdrop-blur-3xl
+            shadow-[0_0_60px_-8px_rgba(123,97,255,0.45)]
+            p-12
+            space-y-14
+            transition-all duration-300
           "
         >
 
