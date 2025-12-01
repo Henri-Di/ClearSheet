@@ -68,9 +68,7 @@ export default function ItemsList(props: Props) {
     getTodayIso,
   } = props;
 
-  /* =======================================================================
-      1) SKELETON DESKTOP (MANTIDO)
-  ======================================================================= */
+
   if (loading) {
     return (
       <div
@@ -81,7 +79,7 @@ export default function ItemsList(props: Props) {
           max-h-[70vh] overflow-y-auto custom-scroll
         "
       >
-        {/* shimmer light */}
+       
         <div
           className="
             absolute inset-0 z-10 pointer-events-none
@@ -89,7 +87,7 @@ export default function ItemsList(props: Props) {
             animate-shimmer dark:hidden
           "
         />
-        {/* shimmer dark */}
+    
         <div
           className="
             hidden dark:block absolute inset-0 z-10 pointer-events-none
@@ -115,9 +113,6 @@ export default function ItemsList(props: Props) {
     );
   }
 
-  /* =======================================================================
-      2) EMPTY
-  ======================================================================= */
   if (items.length === 0) {
     return (
       <EmptyState
@@ -126,10 +121,6 @@ export default function ItemsList(props: Props) {
       />
     );
   }
-
-  /* =======================================================================
-      3) MOBILE ADVANCED CARDS  — SOMENTE < 640px
-  ======================================================================= */
 
   const grouped = groupByDate(items);
 
@@ -145,9 +136,6 @@ export default function ItemsList(props: Props) {
 
   return (
     <>
-      {/* ================================
-            MOBILE CARDS
-          ================================ */}
       <div className="block sm:hidden space-y-8">
         {Object.keys(grouped)
           .sort()
@@ -159,7 +147,6 @@ export default function ItemsList(props: Props) {
                 {date === "sem-data" ? "Sem data" : formatBrDate(date)}
               </div>
 
-              {/* Cards */}
               <div className="space-y-4">
                 {grouped[date].map((item) => {
                   const key = `${item.origin}-${item.id}`;
@@ -186,9 +173,7 @@ export default function ItemsList(props: Props) {
           ))}
       </div>
 
-      {/* ================================
-            DESKTOP TABLE NORMAL
-          ================================ */}
+
       <div
         className="
           hidden sm:block rounded-3xl overflow-x-auto

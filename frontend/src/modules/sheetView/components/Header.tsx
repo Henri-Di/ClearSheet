@@ -252,7 +252,6 @@ export function Header({
 
       <div className="relative flex flex-row gap-4 items-center flex-wrap">
 
-        {/* NOVO ITEM — AGORA PRIMEIRO */}
         <button
           onClick={openCreateItemModal}
           className="
@@ -266,7 +265,7 @@ export function Header({
           Novo item
         </button>
 
-        {/* ORDENAR */}
+    
         <div className="relative flex-none">
           <button
             className="
@@ -313,7 +312,7 @@ export function Header({
           />
         </div>
 
-        {/* EDITAR */}
+  
         <button
           onClick={openEditSheetModal}
           className="

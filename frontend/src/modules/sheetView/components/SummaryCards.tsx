@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 
-/* --------------------------------------------------------
-    NORMALIZERS E UTILITÁRIOS (SEM ALTERAÇÕES)
--------------------------------------------------------- */
+
 
 function normalizeName(str: any): string {
   if (!str || typeof str !== "string") return "";
@@ -85,9 +83,7 @@ function BankCardSkeleton() {
   );
 }
 
-/* --------------------------------------------------------
-    AGRUPADOR AUTOMÁTICO PARA O GRÁFICO
--------------------------------------------------------- */
+
 
 function groupAuto(transactions: any[]) {
   if (!transactions?.length) return [];
@@ -129,9 +125,7 @@ function groupAuto(transactions: any[]) {
   return Object.values(groups);
 }
 
-/* --------------------------------------------------------
-    SPARKLINE DUAL — CONTRASTE AJUSTADO
--------------------------------------------------------- */
+
 
 function SparklineDual({ transactions }: { transactions: any[] }) {
   const grouped = useMemo(() => groupAuto(transactions), [transactions]);
@@ -253,9 +247,6 @@ function SparklineDual({ transactions }: { transactions: any[] }) {
   );
 }
 
-/* --------------------------------------------------------
-    ÍCONES — GLASS CIRCLE
--------------------------------------------------------- */
 
 const GlassCircle = (content: JSX.Element, tint: string) => (
   <svg width="48" height="48" viewBox="0 0 48 48">
@@ -273,9 +264,7 @@ const GlassCircle = (content: JSX.Element, tint: string) => (
   </svg>
 );
 
-/* --------------------------------------------------------
-    CORES OFICIAIS DE 50 BANCOS
--------------------------------------------------------- */
+
 
 const BankColorLight: Record<string, string> = {
   "banco do brasil": "#F2D201",
@@ -330,9 +319,7 @@ const BankColorLight: Record<string, string> = {
   "credit suisse": "#003B73",
 };
 
-/* --------------------------------------------------------
-    GRADIENTES LIGHT PROFISSIONAIS
--------------------------------------------------------- */
+
 
 const BankBg: Record<string, string> = {};
 
@@ -353,9 +340,7 @@ Object.keys(BankColorLight).forEach((k) => {
   `;
 });
 
-/* --------------------------------------------------------
-    GRADIENTES DARK (ALTO CONTRASTE)
--------------------------------------------------------- */
+
 
 const BankBgDark: Record<string, string> = {};
 
@@ -364,9 +349,6 @@ Object.keys(BankColorLight).forEach((k) => {
   BankBgDark[k] = `linear-gradient(135deg,${c}33,${c}77)`;
 });
 
-/* --------------------------------------------------------
-    ÍCONES DOS 50 BANCOS
--------------------------------------------------------- */
 
 function makeLetterIcon(letter: string, color: string) {
   return GlassCircle(
@@ -393,9 +375,7 @@ Object.keys(BankColorLight).forEach((k) => {
   BankIcons[k] = makeLetterIcon(letter, color);
 });
 
-/* --------------------------------------------------------
-    ALIAS
--------------------------------------------------------- */
+
 
 const BankAlias: Record<string, string> = {
   "banco do brasil": "banco do brasil",
@@ -507,9 +487,7 @@ const BankAlias: Record<string, string> = {
   "credit suisse": "credit suisse",
 };
 
-/* --------------------------------------------------------
-    RESOLVE KEY
--------------------------------------------------------- */
+
 
 function resolveBankKey(rawName: string): string {
   if (!rawName) return "default";
@@ -517,9 +495,7 @@ function resolveBankKey(rawName: string): string {
   return BankAlias[n] || n || "default";
 }
 
-/* --------------------------------------------------------
-    AGRUPADOR BANCÁRIO
--------------------------------------------------------- */
+
 
 function groupBanks(items: any[], dateStart: any, dateEnd: any) {
   const grouped: Record<string, any> = {};
@@ -562,9 +538,7 @@ function groupBanks(items: any[], dateStart: any, dateEnd: any) {
   );
 }
 
-/* --------------------------------------------------------
-    SUMMARYCARDS (INÍCIO DA SEÇÃO)
--------------------------------------------------------- */
+
 
 export function SummaryCards({
   sheet,
@@ -615,13 +589,6 @@ export function SummaryCards({
   );
 }
 
-/* --------------------------------------------------------
-    FIM DA PARTE 1
--------------------------------------------------------- */
-
-/* --------------------------------------------------------
-    CARD INDIVIDUAL (COM CONTRASTE CORRIGIDO PARA DARK/LIGHT)
--------------------------------------------------------- */
 
 function SummaryCard(props: any) {
   const isBank = props.type === "bank";
@@ -631,9 +598,6 @@ function SummaryCard(props: any) {
   const [hidden, setHidden] = useState(false);
   const [showTip, setShowTip] = useState(false);
 
-  /* --------------------------------------------------------
-      DARK MODE DINÂMICO (OBSERVA ALTERAÇÕES)
-  -------------------------------------------------------- */
 
   const [isDark, setIsDark] = useState(
     typeof document !== "undefined" &&
@@ -657,9 +621,6 @@ function SummaryCard(props: any) {
 
   const bg = isBank ? (isDark ? props.bgDark : props.bg) : undefined;
 
-  /* --------------------------------------------------------
-      RENDER DO CARD
-  -------------------------------------------------------- */
 
   return (
     <motion.div
@@ -721,19 +682,21 @@ function SummaryCard(props: any) {
         )}
       </div>
 
-      {/* --------------------------------------------------------
-            BASE CARDS (Saldo, Entradas, Saídas, Final)
-      -------------------------------------------------------- */}
+
       {!isBank && (
         <>
           <p
             className="
               text-3xl font-extrabold mt-4 select-none
-              text-[#000] 
-              dark:text-white
+              text-[#000] dark:text-white
+              transition-all duration-300
             "
+            style={{
+              filter: hidden ? "blur(7px)" : "none",
+              opacity: hidden ? 0.55 : 1,
+            }}
           >
-            {hidden ? "•••••" : formatCurrency(props.value)}
+            {formatCurrency(props.value)}
           </p>
 
           <div
@@ -750,9 +713,8 @@ function SummaryCard(props: any) {
         </>
       )}
 
-      {/* --------------------------------------------------------
-            BANK CARDS (Detalhado)
-      -------------------------------------------------------- */}
+
+
       {isBank && (
         <>
           <div className="mt-4 space-y-2">
@@ -823,9 +785,6 @@ function SummaryCard(props: any) {
   );
 }
 
-/* --------------------------------------------------------
-    LINE — CONTRASTE AJUSTADO
--------------------------------------------------------- */
 
 function Line({ label, v, color }: any) {
   return (
@@ -851,9 +810,7 @@ function Line({ label, v, color }: any) {
   );
 }
 
-/* --------------------------------------------------------
-    TRANSACTION ROW — CONTRASTE AJUSTADO
--------------------------------------------------------- */
+
 
 function TransactionRow({ t }: any) {
   const vencOriginal = normalizeDate(t.date);
@@ -934,6 +891,3 @@ function TransactionRow({ t }: any) {
   );
 }
 
-/* --------------------------------------------------------
-    FIM DO ARQUIVO
--------------------------------------------------------- */

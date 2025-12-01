@@ -51,7 +51,7 @@ export default function FiltersBar({
         flex flex-col gap-4
       "
     >
-      {/* HEADER + BOTÃO */}
+   
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300">
           <Filter size={16} className="text-[#7B61FF]" />
@@ -73,7 +73,7 @@ export default function FiltersBar({
         </button>
       </div>
 
-      {/* SEARCH */}
+   
       <div className="relative w-full">
         <Search
           size={18}
@@ -95,7 +95,7 @@ export default function FiltersBar({
         />
       </div>
 
-      {/* ÁREA EXPANDIDA */}
+     
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
@@ -114,7 +114,7 @@ export default function FiltersBar({
                 grid grid-cols-1 md:grid-cols-3 gap-3
               "
             >
-              {/* CATEGORIA */}
+            
               {setCategory && (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-600 dark:text-gray-300">
@@ -141,7 +141,7 @@ export default function FiltersBar({
                 </div>
               )}
 
-              {/* BANCO */}
+          
               {setBank && (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-600 dark:text-gray-300">
@@ -168,7 +168,7 @@ export default function FiltersBar({
                 </div>
               )}
 
-              {/* ORDENAR */}
+           
               {setSort && (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-600 dark:text-gray-300">

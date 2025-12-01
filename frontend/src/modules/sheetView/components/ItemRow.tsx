@@ -26,9 +26,6 @@ import type { JSX } from "react/jsx-runtime";
 import { useState } from "react";
 
 
-/* ----------------------------------------------------------
-    FIX: Converte para ISO curto e preserva integridade
----------------------------------------------------------- */
 const normalizeDate = (v: any): string | null =>
   v ? String(v).slice(0, 10) : null;
 
@@ -47,9 +44,6 @@ const isItemOverdue = (item: UnifiedItem): boolean => {
 };
 
 
-/* ----------------------------------------------------------
-    Tooltip com contraste reforçado
----------------------------------------------------------- */
 function Tooltip({ text }: { text: string }) {
   return (
     <div
@@ -69,9 +63,6 @@ function Tooltip({ text }: { text: string }) {
 }
 
 
-/* ----------------------------------------------------------
-    ITEM ROW
----------------------------------------------------------- */
 interface Props {
   item: UnifiedItem;
   index: number;
@@ -97,10 +88,6 @@ interface Props {
   getTodayIso: () => string;
 }
 
-
-/* ----------------------------------------------------------
-    COMPONENTE PRINCIPAL
----------------------------------------------------------- */
 export function ItemRow({
   item,
   index,
@@ -119,9 +106,7 @@ export function ItemRow({
   const isUpdating = updatingInlineKey === `${item.origin}-${item.id}`;
 
 
-  /* ------------------------------------------------------
-      SPINNER INLINE — não quebra padding/margins
-  ------------------------------------------------------ */
+
   const Spinner = () => (
     <div className="flex items-center justify-center">
       <div
@@ -135,18 +120,12 @@ export function ItemRow({
   );
 
 
-  /* ------------------------------------------------------
-      ÍCONE DE CATEGORIA
-  ------------------------------------------------------ */
   const CatIcon =
     item.category?.icon
       ? getCategoryIconByCode(item.category.icon)
       : getCategoryIconComponent(item.category?.name || "");
 
 
-  /* ------------------------------------------------------
-      BADGES DE STATUS COM CONTRASTE OTIMIZADO
-  ------------------------------------------------------ */
   let badgeBg = "";
   let badgeText = "";
   let badgeIcon: JSX.Element | null = null;
@@ -174,9 +153,6 @@ export function ItemRow({
   }
 
 
-  /* ------------------------------------------------------
-      ROW BACKGROUND (OTIMIZADO L/D)
-  ------------------------------------------------------ */
   const rowBg =
     isPaid
       ? "bg-emerald-50/40 dark:bg-emerald-900/10"
@@ -187,9 +163,6 @@ export function ItemRow({
       : "bg-red-50/25 dark:bg-red-900/15";
 
 
-  /* ------------------------------------------------------
-      SALVAR INLINE
-  ------------------------------------------------------ */
   const handleInlineSave = async (
     field: EditableItemField,
     value: any,
@@ -215,10 +188,6 @@ export function ItemRow({
     }
   };
 
-
-  /* ------------------------------------------------------
-      TOOLTIPS (já corrigidos acima)
-  ------------------------------------------------------ */
   const [tipDesc, setTipDesc] = useState(false);
   const [tipCat, setTipCat] = useState(false);
   const [tipVal, setTipVal] = useState(false);
@@ -228,9 +197,6 @@ export function ItemRow({
   const [tipActions, setTipActions] = useState(false);
 
 
-  /* ------------------------------------------------------
-      RENDER
-  ------------------------------------------------------ */
   return (
     <tr
       className={`
@@ -243,7 +209,6 @@ export function ItemRow({
       `}
     >
 
-      {/* OVERLAY DE LOADING — NÃO MUDA TAMANHO DA ROW */}
       {isUpdating && (
         <div
           className="
@@ -257,10 +222,6 @@ export function ItemRow({
         </div>
       )}
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: ÍNDICE
-      ---------------------------------------------------------- */}
       <td
         className="
           py-6 px-4 text-center font-semibold
@@ -271,10 +232,6 @@ export function ItemRow({
         {index + 1}
       </td>
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: DESCRIÇÃO
-      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[34%] border-r border-gray-200 dark:border-[#322b44] relative">
         <div
           className="absolute -top-1 left-1 cursor-pointer"
@@ -322,10 +279,6 @@ export function ItemRow({
         </div>
       </td>
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: CATEGORIA
-      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[20%] border-r border-gray-200 dark:border-[#322b44] relative">
 
         <div
@@ -382,10 +335,6 @@ export function ItemRow({
         </div>
       </td>
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: VALOR
-      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[12%] border-r border-gray-200 dark:border-[#322b44] relative">
 
         <div
@@ -434,10 +383,6 @@ export function ItemRow({
         </div>
       </td>
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: DATA / VENCIMENTO
-      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[18%] border-r border-gray-200 dark:border-[#322b44] text-center relative">
 
         <div
@@ -502,10 +447,6 @@ export function ItemRow({
         )}
       </td>
 
-
-      {/* ----------------------------------------------------------
-          COLUNA: PAGAMENTO
-      ---------------------------------------------------------- */}
       <td className="py-6 px-4 w-[10%] border-r border-gray-200 dark:border-[#322b44] text-center relative">
 
         <div
@@ -517,7 +458,6 @@ export function ItemRow({
           {tipPay && <Tooltip text="Marcar ou remover pagamento." />}
         </div>
 
-        {/* botão PAGAR */}
         {!isIncome && !isPaid && (
           <button
             disabled={isUpdating}
@@ -539,7 +479,6 @@ export function ItemRow({
           </button>
         )}
 
-        {/* botão PAGAMENTO JÁ FEITO */}
         {!isIncome && isPaid && (
           <button
             disabled={isUpdating}
@@ -558,16 +497,13 @@ export function ItemRow({
           </button>
         )}
 
-        {/* receita nunca tem pagamento */}
         {isIncome && (
           <div className="text-xs text-gray-500 dark:text-gray-400 italic">—</div>
         )}
       </td>
 
 
-      {/* ----------------------------------------------------------
-          COLUNA: BANCO
-      ---------------------------------------------------------- */}
+
       <td className="py-6 px-4 w-[16%] border-r border-gray-200 dark:border-[#322b44] relative">
 
         <div
@@ -624,9 +560,7 @@ export function ItemRow({
       </td>
 
 
-      {/* ----------------------------------------------------------
-          COLUNA: AÇÕES
-      ---------------------------------------------------------- */}
+   
       <td className="py-6 px-4 w-36 text-center relative">
 
         <div
@@ -640,7 +574,7 @@ export function ItemRow({
 
         <div className="flex items-center gap-5 justify-center">
 
-          {/* editar */}
+      
           <button
             disabled={isUpdating}
             className="
@@ -658,7 +592,7 @@ export function ItemRow({
             Editar
           </button>
 
-          {/* excluir */}
+ 
           <button
             disabled={isUpdating}
             className="
