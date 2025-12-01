@@ -4,7 +4,7 @@ import { HelpCircle, BarChart3, Eye, EyeOff } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 import { SparklineDual } from "./SparklineDual";
 import { BankAnalyticsModal } from "./BankAnalyticsModal";
-import { BANK_ICONS } from "./bankIcons";
+import { resolveBankIcon } from "./bankIcons";
 
 export function BankCard({ bank }: any) {
   const saldo = (bank.income ?? 0) - (bank.expense ?? 0);
@@ -26,7 +26,7 @@ export function BankCard({ bank }: any) {
     return () => obs.disconnect();
   }, []);
 
-  const visual = BANK_ICONS[bank.key] ?? BANK_ICONS["nubank"];
+  const visual = resolveBankIcon(bank.key);
   const bgFinal = isDark ? bank.bgDark : bank.bg;
 
   return (

@@ -1,11 +1,29 @@
-// src/components/bankIcons.tsx
+
 import type { JSX } from "react/jsx-runtime";
 
 export interface BankVisual {
   letter: string;
   icon: JSX.Element;
-  color: string; // cor para o glow atrás
+  color: string;
 }
+
+
+const unknownIcon: JSX.Element = (
+  <svg width="40" height="40" viewBox="0 0 40 40">
+    <circle cx="20" cy="20" r="18" fill="#9CA3AF" />
+    <text
+      x="50%"
+      y="50%"
+      textAnchor="middle"
+      dy=".35em"
+      fill="#ffffff"
+      fontSize="20"
+      fontWeight="bold"
+    >
+      ?
+    </text>
+  </svg>
+);
 
 export const BANK_ICONS: Record<string, BankVisual> = {
   nubank: {
@@ -90,3 +108,14 @@ export const BANK_ICONS: Record<string, BankVisual> = {
     ),
   },
 };
+
+
+export function resolveBankIcon(key: string): BankVisual {
+  return (
+    BANK_ICONS[key.toLowerCase()] ?? {
+      letter: "?",
+      color: "#9CA3AF",
+      icon: unknownIcon,
+    }
+  );
+}
