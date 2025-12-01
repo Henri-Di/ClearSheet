@@ -1,23 +1,26 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
   TrendingDown,
   Wallet2,
   PiggyBank,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import { formatCurrency } from "../../sheetView/utils/currency";
 import type { JSX } from "react/jsx-runtime";
-
 
 interface KPI {
   title: string;
   value: number | string;
   icon: JSX.Element;
   color: string;
-  bg: string; 
-  glow: string; 
-  barColor: string; 
+  bg: string;
+  glow: string;
+  barColor: string;
+  hideable?: boolean;
 }
 
 interface Props {
@@ -26,7 +29,6 @@ interface Props {
   saidas: number;
   economia?: number;
 }
-
 
 export function OverviewRow({ saldo, entradas, saidas, economia }: Props) {
   const cards: KPI[] = [
@@ -38,6 +40,7 @@ export function OverviewRow({ saldo, entradas, saidas, economia }: Props) {
       bg: "from-green-50/60 to-green-100/30 dark:from-green-900/20 dark:to-green-900/10",
       glow: "shadow-[0_0_14px_-2px_rgba(16,185,129,0.45)]",
       barColor: "bg-green-500",
+      hideable: true,
     },
     {
       title: "Saídas",
@@ -47,24 +50,21 @@ export function OverviewRow({ saldo, entradas, saidas, economia }: Props) {
       bg: "from-red-50/60 to-red-100/30 dark:from-red-900/20 dark:to-red-900/10",
       glow: "shadow-[0_0_14px_-2px_rgba(239,68,68,0.4)]",
       barColor: "bg-red-500",
+      hideable: true,
     },
     {
       title: "Saldo Atual",
       value: formatCurrency(saldo),
       icon: <Wallet2 size={20} className="text-indigo-500 dark:text-indigo-300" />,
-      color:
-        saldo >= 0
-          ? "text-indigo-600 dark:text-indigo-300"
-          : "text-red-500 dark:text-red-300",
-      bg:
-        saldo >= 0
-          ? "from-indigo-50/60 to-indigo-100/30 dark:from-indigo-900/20 dark:to-indigo-900/10"
-          : "from-red-50/60 to-red-100/30 dark:from-red-900/20 dark:to-red-900/10",
-      glow:
-        saldo >= 0
-          ? "shadow-[0_0_14px_-2px_rgba(99,102,241,0.45)]"
-          : "shadow-[0_0_14px_-2px_rgba(239,68,68,0.45)]",
+      color: saldo >= 0 ? "text-indigo-600 dark:text-indigo-300" : "text-red-500 dark:text-red-300",
+      bg: saldo >= 0 
+        ? "from-indigo-50/60 to-indigo-100/30 dark:from-indigo-900/20 dark:to-indigo-900/10"
+        : "from-red-50/60 to-red-100/30 dark:from-red-900/20 dark:to-red-900/10",
+      glow: saldo >= 0
+        ? "shadow-[0_0_14px_-2px_rgba(99,102,241,0.45)]"
+        : "shadow-[0_0_14px_-2px_rgba(239,68,68,0.45)]",
       barColor: saldo >= 0 ? "bg-indigo-500" : "bg-red-500",
+      hideable: true,
     },
     economia !== undefined && {
       title: "Economia / Mês",
@@ -74,6 +74,7 @@ export function OverviewRow({ saldo, entradas, saidas, economia }: Props) {
       bg: "from-emerald-50/60 to-emerald-100/30 dark:from-emerald-900/20 dark:to-emerald-900/10",
       glow: "shadow-[0_0_14px_-2px_rgba(16,185,129,0.45)]",
       barColor: "bg-emerald-500",
+      hideable: true,
     },
   ].filter(Boolean) as KPI[];
 
@@ -100,8 +101,9 @@ export function OverviewRow({ saldo, entradas, saidas, economia }: Props) {
   );
 }
 
+function OverviewItem({ title, value, icon, color, bg, glow, barColor, hideable }: KPI) {
+  const [hidden, setHidden] = useState(false);
 
-function OverviewItem({ title, value, icon, color, bg, glow, barColor }: KPI) {
   return (
     <motion.div
       variants={{
@@ -119,11 +121,10 @@ function OverviewItem({ title, value, icon, color, bg, glow, barColor }: KPI) {
         bg-gradient-to-br ${bg}
         border border-white/30 dark:border-white/10
         shadow-lg backdrop-blur-xl relative overflow-hidden
-
         ${glow}
       `}
     >
-    
+
       <div
         className="
           absolute left-4 top-4 w-10 h-10 
@@ -132,7 +133,7 @@ function OverviewItem({ title, value, icon, color, bg, glow, barColor }: KPI) {
         "
       />
 
- 
+
       <motion.div
         className="
           relative z-10 p-3 rounded-2xl 
@@ -147,7 +148,28 @@ function OverviewItem({ title, value, icon, color, bg, glow, barColor }: KPI) {
         {icon}
       </motion.div>
 
-   
+     
+      {hideable && (
+        <button
+          onClick={() => setHidden(!hidden)}
+          className="
+            absolute top-4 right-4 p-2 rounded-xl 
+            bg-white/70 dark:bg-white/10 
+            border border-black/5 dark:border-white/10 
+            backdrop-blur-xl
+            hover:bg-white dark:hover:bg-white/20
+            transition-all z-20
+          "
+        >
+          {hidden ? (
+            <EyeOff size={18} className="text-gray-700 dark:text-gray-300" />
+          ) : (
+            <Eye size={18} className="text-gray-700 dark:text-gray-300" />
+          )}
+        </button>
+      )}
+
+    
       <div className="text-right mt-4 relative z-10">
         <p className="text-sm text-[#5A556A] dark:text-gray-300 font-medium tracking-wide">
           {title}
@@ -158,12 +180,17 @@ function OverviewItem({ title, value, icon, color, bg, glow, barColor }: KPI) {
             text-3xl font-semibold tracking-tight mt-1
             ${color}
           `}
+          style={{
+            filter: hidden ? "blur(8px)" : "none",
+            opacity: hidden ? 0.55 : 1,
+            transition: "0.25s ease",
+          }}
         >
           {value}
         </p>
       </div>
 
- 
+
       <div className="w-full h-[5px] rounded-full mt-5 bg-black/5 dark:bg-white/10 overflow-hidden">
         <div className={`h-full ${barColor} rounded-full opacity-80`} />
       </div>

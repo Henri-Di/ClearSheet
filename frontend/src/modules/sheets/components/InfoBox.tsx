@@ -23,18 +23,20 @@ export function InfoBox({
 
   return (
     <motion.div
-      whileHover={{ scale: 1.018 }}
+      whileHover={{ scale: 1.015 }}
       transition={{ duration: 0.22 }}
       className="
         relative rounded-3xl p-6 shadow-sm transition-all
-
-        bg-[#F5F4FA] dark:bg-[#1E1D25]
-        border border-[#E1E0EB] dark:border-white/15
+        
+        bg-[#F9F8FF] dark:bg-[#1E1D25]
+        border border-[#E6E1F7] dark:border-white/10
+        backdrop-blur-xl
       "
     >
 
+      {/* Tooltip do título */}
       <div
-        className="absolute top-4 right-4 cursor-pointer"
+        className="absolute top-4 right-4 cursor-pointer z-30"
         onMouseEnter={() => setShowTip(true)}
         onMouseLeave={() => setShowTip(false)}
       >
@@ -44,23 +46,27 @@ export function InfoBox({
         />
 
         {showTip && tooltip && (
-          <div
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16 }}
             className="
-              absolute top-6 right-0 z-40 px-3 py-1 rounded-lg shadow-lg
+              absolute top-6 right-0 z-40 px-3 py-1.5 rounded-lg shadow-lg
               text-[11px] whitespace-nowrap
 
-              bg-white dark:bg-[#2A2733]
+              bg-white/95 dark:bg-[#2A2733]
               text-[#2F2F36] dark:text-white/90
-              border border-gray-200 dark:border-white/15
-              animate-fadeIn
+              border border-gray-200 dark:border-white/10
+              backdrop-blur-xl
             "
           >
             {tooltip}
-          </div>
+          </motion.div>
         )}
       </div>
 
-
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h3
           className="
@@ -71,27 +77,34 @@ export function InfoBox({
           {title}
         </h3>
 
+        {/* Botão de esconder */}
         <button
           className="
-            p-1.5 rounded-xl transition-all
+            p-1.5 rounded-xl transition-all z-20
             hover:bg-black/5 dark:hover:bg-white/10
           "
           onClick={() => setHidden(!hidden)}
         >
           {hidden ? (
-            <EyeOff size={20} className="text-gray-700 dark:text-gray-300" />
+            <EyeOff size={18} className="text-gray-700 dark:text-gray-300" />
           ) : (
-            <Eye size={20} className="text-gray-700 dark:text-gray-300" />
+            <Eye size={18} className="text-gray-700 dark:text-gray-300" />
           )}
         </button>
       </div>
 
-
-      <div className="mt-4 min-h-[38px]">
+      {/* Valor */}
+      <div
+        className={`
+          mt-4 min-h-[38px]
+          ${hidden ? "opacity-70 blur-[6px]" : "opacity-100 blur-0"}
+          transition-all duration-200
+        `}
+      >
         {animated ? (
           <AnimatePresence mode="popLayout">
             <motion.p
-              key={value}
+              key={hidden ? "hidden" : value}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
@@ -116,9 +129,9 @@ export function InfoBox({
         )}
       </div>
 
-    
+      {/* Barra final */}
       <div
-        className="h-[4px] rounded-full mt-6 opacity-80 dark:opacity-60"
+        className="h-[5px] rounded-full mt-6 opacity-90 dark:opacity-70"
         style={{ background: color }}
       />
     </motion.div>

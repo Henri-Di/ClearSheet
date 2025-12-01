@@ -7,10 +7,13 @@ import {
   Calendar,
   Info,
   HelpCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import { InfoBox } from "./InfoBox";
 import type { Sheet, SheetSummary } from "../types/sheet";
+import { useState } from "react";
 
 export function SheetCard({
   sheet,
@@ -27,6 +30,14 @@ export function SheetCard({
   const saidas = Number(summary?.saidas ?? 0);
   const initial = Number(summary?.initial ?? sheet.initial_balance);
   const final = Number(summary?.saldo_final ?? initial + entradas - saidas);
+
+  // 👉 NOVO: estado global do card para esconder/exibir valores
+  const [hideValues, setHideValues] = useState(false);
+
+  // Função para aplicar blur em InfoBox
+  const blurStyle = hideValues
+    ? { filter: "blur(8px)", opacity: 0.5, transition: "0.25s" }
+    : {};
 
   return (
     <motion.div
@@ -47,7 +58,7 @@ export function SheetCard({
       "
       onMouseEnter={(e) => {
         const el = e.currentTarget;
-        if (window.innerWidth < 768) return; 
+        if (window.innerWidth < 768) return;
         const isDark = document.documentElement.classList.contains("dark");
 
         el.style.borderColor = isDark ? "#4B4A56" : "#C9B8FF";
@@ -66,7 +77,7 @@ export function SheetCard({
       }}
     >
 
-   
+      {/* Tooltip “Clique para abrir” */}
       <div
         className="
           absolute -top-6 left-1/2 -translate-x-1/2
@@ -89,14 +100,30 @@ export function SheetCard({
         </div>
       </div>
 
+      {/* Botão global de esconder valores (NOVO) */}
+      <button
+        onClick={() => setHideValues(!hideValues)}
+        className="
+          absolute top-4 right-4 p-2 rounded-xl
+          bg-white/80 dark:bg-white/10 
+          border border-black/5 dark:border-white/10
+          backdrop-blur-md shadow-sm
+          hover:bg-white/90 dark:hover:bg-white/20
+          transition-all z-30
+        "
+      >
+        {hideValues ? (
+          <EyeOff size={18} className="text-gray-700 dark:text-gray-300" />
+        ) : (
+          <Eye size={18} className="text-gray-700 dark:text-gray-300" />
+        )}
+      </button>
 
       <Link to={`/app/sheets/${sheet.id}`} className="block w-full">
-
- 
         <div className="flex items-start justify-between">
-
           <div className="flex items-start gap-4">
 
+            {/* Ícone da planilha */}
             <motion.div
               whileHover={{ rotate: -4, scale: 1.06 }}
               transition={{ type: "spring", stiffness: 300 }}
@@ -114,7 +141,6 @@ export function SheetCard({
               />
             </motion.div>
 
-     
             <div>
               <h3
                 className="
@@ -128,12 +154,14 @@ export function SheetCard({
                 {sheet.name}
               </h3>
 
-              <div className="
-                flex flex-wrap items-center gap-3
-                text-xs sm:text-sm 
-                text-gray-600 dark:text-gray-300
-                mt-1
-              ">
+              <div
+                className="
+                  flex flex-wrap items-center gap-3
+                  text-xs sm:text-sm 
+                  text-gray-600 dark:text-gray-300
+                  mt-1
+                "
+              >
                 <span className="flex items-center gap-1">
                   <Calendar size={14} className="opacity-70" />
                   {sheet.month}/{sheet.year}
@@ -160,7 +188,7 @@ export function SheetCard({
         </div>
       </Link>
 
-
+      {/* InfoBoxes com blur aplicado quando hide */}
       <div
         className="
           grid grid-cols-2 sm:grid-cols-4
@@ -169,16 +197,27 @@ export function SheetCard({
         "
         onClick={(e) => e.stopPropagation()}
       >
-        <InfoBox title="Saldo Inicial" value={initial} color="#9A84FF" animated />
-        <InfoBox title="Entradas"       value={entradas} color="#28A745" animated />
-        <InfoBox title="Saídas"         value={saidas} color="#E63946" animated />
-        <InfoBox title="Saldo Final"    value={final} color="#9A84FF" animated />
+        <div style={blurStyle}>
+          <InfoBox title="Saldo Inicial" value={initial} color="#9A84FF" animated />
+        </div>
+
+        <div style={blurStyle}>
+          <InfoBox title="Entradas" value={entradas} color="#28A745" animated />
+        </div>
+
+        <div style={blurStyle}>
+          <InfoBox title="Saídas" value={saidas} color="#E63946" animated />
+        </div>
+
+        <div style={blurStyle}>
+          <InfoBox title="Saldo Final" value={final} color="#9A84FF" animated />
+        </div>
       </div>
 
-
+      {/* Botões Editar / Excluir */}
       <div
         className="
-          absolute top-4 right-4 
+          absolute top-4 right-16
           flex items-center gap-2 sm:gap-3
           z-20
         "
