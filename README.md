@@ -133,8 +133,7 @@ Essa separação garante:
 
 ---
 
-# 📊 Diagrama de Arquitetura em Mermaid
-
+# 📊 Diagrama de Arquitetura 
 ```mermaid
 flowchart LR
     U[Usuário]
@@ -189,7 +188,7 @@ Frontend
 
 ---
 
-# 🔄 Fluxo de Comunicação em Mermaid
+# 🔄 Fluxo de Comunicação 
 
 ```mermaid
 sequenceDiagram
