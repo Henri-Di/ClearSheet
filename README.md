@@ -240,7 +240,7 @@ Frontend atualiza estado e tela
 
 ---
 
-# 📈 Fluxo de Dados em Mermaid
+# 📈 Fluxo de Dados 
 
 ```mermaid
 flowchart TD
